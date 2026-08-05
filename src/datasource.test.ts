@@ -1,6 +1,6 @@
 import type { DataSourceInstanceSettings } from '@grafana/data';
 import { setBackendSrv, type BackendSrv, type BackendSrvRequest, type FetchResponse } from '@grafana/runtime';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 
 import { DataSource } from './datasource';
 import { LangfuseClientError } from './client/errors';
@@ -276,6 +276,43 @@ describe('Grafana HTTP adapter', () => {
       }),
     ]);
   });
+
+  it('maps Grafana proxy authentication failures to the invalid-credentials response', async () => {
+    const backendSrv = backendSrvRejecting(400, 'Authentication to data source failed');
+    const datasource = new DataSource(instanceSettings(), (settings) => createGrafanaHttpClient(settings, backendSrv));
+
+    await expect(datasource.testDatasource()).resolves.toEqual({
+      status: 'error',
+      message: 'Invalid Langfuse credentials. Check the public and secret keys.',
+    });
+  });
+
+  it('maps Grafana frontend-normalized proxy authentication failures to invalid credentials', async () => {
+    const backendSrv = backendSrvRejecting(400, {
+      message: 'Authentication to data source failed',
+      error: 'Bad Request',
+      response: 'Authentication to data source failed',
+    });
+    const datasource = new DataSource(instanceSettings(), (settings) => createGrafanaHttpClient(settings, backendSrv));
+
+    await expect(datasource.testDatasource()).resolves.toEqual({
+      status: 'error',
+      message: 'Invalid Langfuse credentials. Check the public and secret keys.',
+    });
+  });
+
+  it('keeps unrelated Grafana proxy HTTP 400 responses unexpected and sanitized', async () => {
+    const backendSrv = backendSrvRejecting(400, 'Invalid request sk-upstream-sentinel');
+    const datasource = new DataSource(instanceSettings(), (settings) => createGrafanaHttpClient(settings, backendSrv));
+
+    const result = await datasource.testDatasource();
+
+    expect(result).toEqual({
+      status: 'error',
+      message: 'Cannot validate the Langfuse data source.',
+    });
+    expect(JSON.stringify(result).includes('sk-upstream-sentinel')).toBe(false);
+  });
 });
 
 describe('createObservabilityClient', () => {
@@ -302,4 +339,12 @@ function jsonResponse(data: unknown, status = 200): Response {
     url: '',
     text: async () => text,
   } as Response;
+}
+
+function backendSrvRejecting(status: number, data: unknown): BackendSrv {
+  return {
+    fetch: jest.fn((request: BackendSrvRequest) =>
+      throwError(() => ({ status, data, statusText: 'Bad Request', config: request }))
+    ),
+  } as unknown as BackendSrv;
 }

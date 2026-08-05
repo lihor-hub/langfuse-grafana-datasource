@@ -15,6 +15,7 @@ import type {
 } from './types';
 
 type Clock = () => Date;
+const GRAFANA_PROXY_AUTH_FAILURE = 'Authentication to data source failed';
 
 export function createGrafanaHttpClient(
   instanceSettings: DataSourceInstanceSettings<LangfuseDataSourceOptions>,
@@ -84,7 +85,11 @@ function normalizeGrafanaError(error: unknown, observationV2: boolean): Langfuse
     if (error.cancelled) {
       return new LangfuseClientError('cancelled', 'The request was aborted.');
     }
-    if (error.status === 401 || error.status === 403) {
+    if (
+      error.status === 401 ||
+      error.status === 403 ||
+      (error.status === 400 && isGrafanaProxyAuthFailure(error.data))
+    ) {
       return new LangfuseClientError('unauthorized', 'Langfuse rejected the Grafana proxy credentials.', error.status);
     }
     if (observationV2 && error.status === 404) {
@@ -94,4 +99,17 @@ function normalizeGrafanaError(error: unknown, observationV2: boolean): Langfuse
   }
 
   return new LangfuseClientError('network', 'The Langfuse request failed.');
+}
+
+function isGrafanaProxyAuthFailure(data: unknown): boolean {
+  if (data === GRAFANA_PROXY_AUTH_FAILURE) {
+    return true;
+  }
+  if (typeof data !== 'object' || data === null) {
+    return false;
+  }
+  return (
+    ('message' in data && data.message === GRAFANA_PROXY_AUTH_FAILURE) ||
+    ('response' in data && data.response === GRAFANA_PROXY_AUTH_FAILURE)
+  );
 }

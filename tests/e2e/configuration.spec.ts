@@ -60,14 +60,19 @@ test('Save & Test succeeds through the Grafana proxy and redacts the saved secre
   ]);
 });
 
-test('Save & Test classifies HTTP 401', async ({ createDataSourceConfigPage, selectors, page }) => {
+test('Save & Test classifies Grafana proxy authentication failure', async ({
+  createDataSourceConfigPage,
+  selectors,
+  page,
+}) => {
   const configPage = await createDataSourceConfigPage({ type: PLUGIN_ID });
   await fillConnection(page, 'http://mock-langfuse:8080', 'pk-invalid', LANGFUSE_SECRET!);
   const proxyPath = selectors.apis.DataSource.proxy(configPage.datasource.uid, configPage.datasource.id.toString());
 
   const response = await configPage.saveAndTest({ path: `${proxyPath}/api/public/projects` });
 
-  expect(response.status()).toBe(401);
+  expect(response.status()).toBe(400);
+  assertGrafanaAuthFailureBody(await response.text());
   await expect(configPage).toHaveAlert('error', {
     hasText: 'Invalid Langfuse credentials. Check the public and secret keys.',
   });
@@ -99,6 +104,11 @@ function assertSecretRedacted(value: unknown): void {
   const serialized = typeof value === 'string' ? value : JSON.stringify(value);
   const containsSecret = serialized?.includes(LANGFUSE_SECRET!) ?? false;
   expect(containsSecret).toBe(false);
+}
+
+function assertGrafanaAuthFailureBody(body: string): void {
+  const hasExpectedSafeBody = body === 'Authentication to data source failed';
+  expect(hasExpectedSafeBody).toBe(true);
 }
 
 type MockEvent = {
