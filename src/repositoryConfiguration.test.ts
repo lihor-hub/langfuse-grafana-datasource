@@ -83,11 +83,11 @@ describe('repository configuration', () => {
     expect(startStep).toContain('docker compose pull');
     expect(startStep).toContain('if ! ANONYMOUS_AUTH_ENABLED=false');
     expect(startStep).toContain('docker compose up -d; then');
-    expect(startStep).toContain('docker compose ps');
+    expect(startStep).toContain('docker compose ps --all mock-langfuse mock-langfuse-no-v2 || true');
     expect(startStep).toContain('docker compose logs --no-color mock-langfuse mock-langfuse-no-v2');
     expect(startStep).toContain('exit 1');
     expect(startStep.indexOf('docker compose up -d')).toBeLessThan(startStep.indexOf('docker compose ps'));
-    expect(startStep.indexOf('docker compose ps')).toBeLessThan(startStep.indexOf('docker compose logs'));
+    expect(startStep.indexOf('docker compose ps --all')).toBeLessThan(startStep.indexOf('docker compose logs'));
     expect(cleanupStep).toContain('if: ${{ always() }}');
     expect(cleanupStep).toContain('run: docker compose down --volumes');
     expect(workflow.indexOf('- name: Docker logs')).toBeLessThan(workflow.indexOf('- name: Stop grafana docker'));

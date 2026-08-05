@@ -200,7 +200,7 @@ jobs:
         run: |
           docker compose pull
           if ! ANONYMOUS_AUTH_ENABLED=false DEVELOPMENT=false GRAFANA_VERSION=${{ matrix.GRAFANA_IMAGE.VERSION }} GRAFANA_IMAGE=${{ matrix.GRAFANA_IMAGE.NAME }} docker compose up -d; then
-            docker compose ps || true
+            docker compose ps --all mock-langfuse mock-langfuse-no-v2 || true
             docker compose logs --no-color mock-langfuse mock-langfuse-no-v2 || true
             exit 1
           fi
