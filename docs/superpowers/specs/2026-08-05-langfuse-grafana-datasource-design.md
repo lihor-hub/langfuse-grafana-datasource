@@ -168,11 +168,13 @@ them to Grafana's standard HTTP data-source settings:
 - TLS, CA certificate, client certificate, timeout, and permitted cookies ->
   Grafana HTTP settings where supported by the scaffolded component.
 
-Save & Test performs a minimal authenticated project read and a bounded
-Observations API v2 probe. The project read verifies credentials. The
-observation probe verifies that the configured server exposes the v4 read API. A
-v3 endpoint response or missing v2 endpoint reports that Langfuse v4 is
-required.
+Save & Test performs `GET /api/public/projects` and then a one-row
+`GET /api/public/v2/observations` probe bounded to the preceding hour with only
+core fields. The project read verifies credentials. The observation probe
+verifies that the configured server exposes the v4 read API. A missing or
+incompatible v2 endpoint reports that Langfuse v4 is required; an isolated 404
+is not treated as proof of v3 until the response shape and project probe are
+classified.
 
 The generated Langfuse API client is created without real credentials and is
 pointed at the Grafana proxy base URL. Grafana overwrites the outbound
@@ -227,8 +229,11 @@ stable v2 view:
 
 - `observations`.
 - `scores-numeric`.
-- `scores-boolean`.
 - `scores-categorical`.
+
+Boolean scores are queried through `scores-numeric` and distinguished with its
+`dataType` dimension or filter; Metrics v2 does not expose a separate
+`scores-boolean` view.
 
 The editor exposes:
 
@@ -253,6 +258,9 @@ enforces the row limit before dispatch.
 
 Observation queries use `GET /api/public/v2/observations`. They support:
 
+- Every observation type returned by Langfuse v4, including `SPAN`,
+  `GENERATION`, `EVENT`, `AGENT`, `TOOL`, `CHAIN`, `RETRIEVER`, `EVALUATOR`,
+  `EMBEDDING`, and `GUARDRAIL`.
 - Type, name, level, environment, version, logical-root status, parent, trace,
   user, and session filters.
 - Advanced structured filters supported by the endpoint.
@@ -268,9 +276,10 @@ Grafana's range. A specific trace lookup also keeps the range when available
 because Langfuse recommends bounded reads for performance.
 
 Pages use the endpoint maximum of 1,000 rows. Cursor pagination stops when there
-is no cursor, the query is cancelled, an error occurs, or the configured total
-result ceiling is reached. Reaching the ceiling returns the collected rows with
-a visible truncation notice.
+is no cursor, a cursor repeats, the query is cancelled, an error occurs, or the
+configured total result ceiling is reached. A repeated cursor is reported as an
+incompatible response instead of risking an infinite loop. Reaching the ceiling
+returns the collected rows with a visible truncation notice.
 
 ### Score queries
 
@@ -426,6 +435,7 @@ The error translator distinguishes:
 - Langfuse server failure.
 - Network or proxy failure.
 - Malformed or incompatible response.
+- Query URL too long for the Grafana proxy or Langfuse server.
 
 User-facing messages state what the user can change. Technical details may be
 logged for diagnosis, but authorization headers, secret values, and unrequested
@@ -443,6 +453,7 @@ input/output/metadata are never logged.
 - Metrics time-series, metrics table, histogram, observation table, observation
   log, and score table transformations.
 - Empty, partial, malformed, and unexpected responses.
+- Repeated pagination cursors and oversized Metrics v2 query URLs.
 - Error translation and redaction.
 - Discovery cache keys and expiry.
 
@@ -490,7 +501,8 @@ The first implementation slice records whether `@langfuse/core`:
 - Works through the data proxy without real browser-side credentials.
 - Supports request cancellation.
 - Passes Grafana plugin validation.
-- Produces an acceptable, reviewable bundle delta.
+- Increases the production plugin bundle by no more than 250 KiB gzip compared
+  with the same slice using the Grafana-native adapter.
 
 If any of these fail, the slice selects the Grafana-native HTTP adapter and
 records the reason in an architecture decision. This is an internal
