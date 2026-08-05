@@ -67,4 +67,29 @@ describe('repository configuration', () => {
     expect(jestSetup).toContain("process.env.I18NEXT_NO_SUPPORT_NOTICE = 'true';");
     expect(jestSetup).not.toMatch(/(?:spyOn\(console, ['"]info['"]\)|console\.info\s*=)/);
   });
+
+  it('preserves mock diagnostics on startup failure and always tears Compose down', () => {
+    const workflow = repositoryFile('.github/workflows/ci.yml');
+    const startStep = workflow.slice(
+      workflow.indexOf('- name: Start Grafana'),
+      workflow.indexOf('- name: Wait for grafana server')
+    );
+    const cleanupStep = workflow.slice(
+      workflow.indexOf('- name: Stop grafana docker'),
+      workflow.indexOf('# Uncomment this step')
+    );
+
+    expect(startStep).toContain('id: start-grafana');
+    expect(startStep).toContain('docker compose pull');
+    expect(startStep).toContain('if ! ANONYMOUS_AUTH_ENABLED=false');
+    expect(startStep).toContain('docker compose up -d; then');
+    expect(startStep).toContain('docker compose ps');
+    expect(startStep).toContain('docker compose logs --no-color mock-langfuse mock-langfuse-no-v2');
+    expect(startStep).toContain('exit 1');
+    expect(startStep.indexOf('docker compose up -d')).toBeLessThan(startStep.indexOf('docker compose ps'));
+    expect(startStep.indexOf('docker compose ps')).toBeLessThan(startStep.indexOf('docker compose logs'));
+    expect(cleanupStep).toContain('if: ${{ always() }}');
+    expect(cleanupStep).toContain('run: docker compose down --volumes');
+    expect(workflow.indexOf('- name: Docker logs')).toBeLessThan(workflow.indexOf('- name: Stop grafana docker'));
+  });
 });
