@@ -1,0 +1,27 @@
+{
+  "$schema": "https://raw.githubusercontent.com/grafana/grafana/main/docs/sources/developers/plugins/plugin.schema.json",
+  "type": "datasource",
+  "name": "Langfuse",
+  "id": "lihorhub-langfuse-datasource",
+  "metrics": true,
+  "logs": true,
+  "info": {
+    "description": "Read-only Grafana data source for Langfuse v4 observability data",
+    "author": {
+      "name": "Lihor"
+    },
+    "keywords": ["datasource", "langfuse", "observability"],
+    "logos": {
+      "small": "img/logo.svg",
+      "large": "img/logo.svg"
+    },
+    "links": [],
+    "screenshots": [],
+    "version": "%VERSION%",
+    "updated": "%TODAY%"
+  },
+  "dependencies": {
+    "grafanaDependency": ">=12.3.0",
+    "plugins": []
+  }
+}
