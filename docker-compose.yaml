@@ -23,7 +23,13 @@ services:
       LANGFUSE_E2E_SECRET: ${LANGFUSE_E2E_SECRET:?set it}
       LANGFUSE_E2E_MODE: normal
     healthcheck:
-      test: ['CMD', 'wget', '-q', '--spider', 'http://localhost:8080/__test/health']
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:8080/__test/health').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
       interval: 1s
       timeout: 1s
       retries: 30
@@ -39,7 +45,13 @@ services:
       LANGFUSE_E2E_SECRET: ${LANGFUSE_E2E_SECRET:?set it}
       LANGFUSE_E2E_MODE: no-v2
     healthcheck:
-      test: ['CMD', 'wget', '-q', '--spider', 'http://localhost:8080/__test/health']
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:8080/__test/health').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
       interval: 1s
       timeout: 1s
       retries: 30

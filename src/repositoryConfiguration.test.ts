@@ -92,4 +92,14 @@ describe('repository configuration', () => {
     expect(cleanupStep).toContain('run: docker compose down --volumes');
     expect(workflow.indexOf('- name: Docker logs')).toBeLessThan(workflow.indexOf('- name: Stop grafana docker'));
   });
+
+  it('health-checks both mocks through Node on IPv4 loopback', () => {
+    const compose = repositoryFile('docker-compose.yaml');
+    const nodeProbe =
+      "fetch('http://127.0.0.1:8080/__test/health').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))";
+
+    expect(compose.split(nodeProbe)).toHaveLength(3);
+    expect(compose).not.toContain("'wget'");
+    expect(compose).not.toContain('http://localhost:8080/__test/health');
+  });
 });
