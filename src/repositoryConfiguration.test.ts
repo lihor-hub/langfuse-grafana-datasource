@@ -57,7 +57,7 @@ describe('repository configuration', () => {
 
     expect(e2eTest).not.toMatch(/\.not\.toContain\(LANGFUSE_SECRET/);
     expect(e2eTest).not.toContain('JSON.stringify(completedBrowserRequests)');
-    expect(e2eTest.match(/assertSecretRedacted\(/g)).toHaveLength(4);
+    expect(e2eTest.match(/assertSecretRedacted\(/g)).toHaveLength(6);
     expect(e2eTest).toContain('expect(containsSecret).toBe(false)');
   });
 
@@ -101,5 +101,37 @@ describe('repository configuration', () => {
     expect(compose.split(nodeProbe)).toHaveLength(3);
     expect(compose).not.toContain("'wget'");
     expect(compose).not.toContain('http://localhost:8080/__test/health');
+  });
+
+  it('verifies the real Save & Test observation probe uses a bounded one-hour ISO window', () => {
+    const e2eTest = repositoryFile('tests/e2e/configuration.spec.ts');
+
+    expect(e2eTest).toContain('const saveAndTestStartedAt = Date.now()');
+    expect(e2eTest).toContain('const saveAndTestFinishedAt = Date.now()');
+    expect(e2eTest).toContain('assertObservationProbeWindow(');
+    expect(e2eTest).toContain('toTime - fromTime === 60 * 60 * 1000');
+  });
+
+  it('audits all relevant post-save browser requests without exposing secret-bearing values', () => {
+    const e2eTest = repositoryFile('tests/e2e/configuration.spec.ts');
+
+    expect(e2eTest).toContain('captureRelevantBrowserRequests(page)');
+    expect(e2eTest).toContain("body.includes('secureJsonData')");
+    expect(e2eTest).toContain('const legitimateSaveRequestIndex =');
+    expect(e2eTest).toContain('await configPage.goto()');
+    expect(e2eTest).toContain('const laterBrowserRequests =');
+    expect(e2eTest).toContain('assertSecretRedacted(laterBrowserRequests)');
+    expect(e2eTest).toContain('expect(targetsMockLangfuse).toBe(false)');
+  });
+
+  it('exercises real Grafana proxy cancellation without fixed sleeps', () => {
+    const e2eTest = repositoryFile('tests/e2e/configuration.spec.ts');
+
+    expect(e2eTest).toContain("test('aborts a delayed Metrics v2 request through the Grafana proxy'");
+    expect(e2eTest).toContain('new AbortController()');
+    expect(e2eTest).toMatch(/expect\s*\.poll/);
+    expect(e2eTest).toContain('event.aborted');
+    expect(e2eTest).toContain('expect(responseConsumed).toBe(false)');
+    expect(e2eTest).not.toContain('waitForTimeout');
   });
 });
