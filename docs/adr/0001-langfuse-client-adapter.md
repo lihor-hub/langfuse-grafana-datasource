@@ -71,13 +71,18 @@ sponsorship link is a recommendation.
   header.
 - The standalone mock server accepted only an environment-supplied Basic Auth
   pair, returned 401 for another pair, returned 404 in `no-v2` mode, and marked
-  a locally aborted delayed metrics request as `aborted: true`.
-- `docker compose config -q` passed with runtime-only placeholder environment
-  values. `docker info --format '{{.ServerVersion}}'` failed with:
-  `Cannot connect to the Docker daemon at unix:///Users/ioachimlihor/.docker/run/docker.sock. Is the docker daemon running?`
-  Docker Desktop was awaiting macOS administrator approval, so no claim is made
-  that Grafana attached Basic Auth server-side or propagated a browser close to
-  the upstream mock in this environment.
+  an aborted delayed metrics request as `aborted: true`.
+- CI run
+  [31044638475](https://github.com/lihor-hub/langfuse-grafana-datasource/actions/runs/31044638475)
+  executed the real Docker Compose and Chromium path against Grafana Enterprise
+  12.3.10, 12.4.7, 13.0.5, 13.1.2, and nightly. Every matrix job passed.
+- The passing browser suite proves Grafana attached Basic Auth server-side,
+  exposed neither the Authorization header nor the secret after the one
+  legitimate secure-settings save, preserved the exact one-hour Observations
+  v2 probe, classified invalid credentials and a missing v2 endpoint, and
+  propagated a browser abort through the Grafana proxy to the upstream mock.
+- Local Docker remained unavailable, so the reproducible CI matrix is the
+  retained containerized evidence for this decision.
 
 ## Consequences
 
@@ -87,5 +92,5 @@ sponsorship link is a recommendation.
   reviewed when dependencies or the Langfuse server version change.
 - The public client remains read-only: `checkConnection`, `queryMetrics`,
   `listObservations`, and `listScores`. It has no generic request method.
-- The real Compose E2E suite is mandatory once Docker is available; a browser
-  route stub is not an acceptable substitute.
+- Keep the real Compose E2E matrix as a release gate; a browser route stub is
+  not an acceptable substitute for proxy authentication or cancellation.
