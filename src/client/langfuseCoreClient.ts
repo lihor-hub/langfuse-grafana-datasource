@@ -4,8 +4,6 @@ import {
   LangfuseAPIError,
   LangfuseAPITimeoutError,
   type GetMetricsV2Request,
-  type GetObservationsV2Request,
-  type GetScoresV3Request,
 } from '@langfuse/core';
 
 import type { LangfuseDataSourceOptions } from '../types';
@@ -81,10 +79,7 @@ export function createLangfuseCoreClient(
 
     async listObservations(request: ObservationRequest, signal?: AbortSignal): Promise<ObservationPage> {
       try {
-        return (await api.observations.getMany(
-          request as GetObservationsV2Request,
-          requestOptions(signal)
-        )) as unknown as ObservationPage;
+        return await api.observations.getMany(request, requestOptions(signal));
       } catch (error) {
         throw normalizeCoreError(error, true);
       }
@@ -92,10 +87,7 @@ export function createLangfuseCoreClient(
 
     async listScores(request: ScoreRequest, signal?: AbortSignal): Promise<ScorePage> {
       try {
-        return (await api.scoresV3.getManyV3(
-          request as GetScoresV3Request,
-          requestOptions(signal)
-        )) as unknown as ScorePage;
+        return await api.scoresV3.getManyV3(request, requestOptions(signal));
       } catch (error) {
         throw normalizeCoreError(error);
       }

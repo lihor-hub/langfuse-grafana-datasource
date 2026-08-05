@@ -182,6 +182,19 @@ jobs:
       - name: Install dev dependencies
         run: npm ci
 
+      - name: Configure ephemeral E2E credentials
+        shell: bash
+        run: |
+          e2e_public_key='pk-e2e-ci'
+          e2e_secret="$(openssl rand -hex 32)"
+          printf '::add-mask::%s\n' "$e2e_public_key"
+          printf '::add-mask::%s\n' "$e2e_secret"
+          printf '%s\n' 'LANGFUSE_E2E_PUBLIC_KEY=pk-e2e-ci' >> "$GITHUB_ENV"
+          printf 'LANGFUSE_E2E_SECRET=%s\n' "$e2e_secret" >> "$GITHUB_ENV"
+
+      - name: Validate E2E Compose configuration
+        run: docker compose config -q
+
       - name: Start Grafana
         run: |
           docker compose pull

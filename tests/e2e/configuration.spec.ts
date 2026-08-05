@@ -37,14 +37,14 @@ test('Save & Test succeeds through the Grafana proxy and redacts the saved secre
   const settingsResponse = await page.request.get(`/api/datasources/uid/${configPage.datasource.uid}`);
   await expect(settingsResponse).toBeOK();
   const settingsText = await settingsResponse.text();
-  expect(settingsText).not.toContain(LANGFUSE_SECRET!);
+  assertSecretRedacted(settingsText);
   expect(JSON.parse(settingsText).secureJsonFields).toEqual(expect.objectContaining({ basicAuthPassword: true }));
   const bootData = await page.evaluate(() =>
     JSON.stringify((window as unknown as { grafanaBootData: unknown }).grafanaBootData)
   );
   const completedBrowserRequests = await Promise.all(browserRequests);
-  expect(bootData).not.toContain(LANGFUSE_SECRET!);
-  expect(JSON.stringify(completedBrowserRequests)).not.toContain(LANGFUSE_SECRET!);
+  assertSecretRedacted(bootData);
+  assertSecretRedacted(completedBrowserRequests);
   expect(completedBrowserRequests.every(({ headers }) => headers.authorization === undefined)).toBe(true);
 
   const events = await readMockEvents(page, `${proxyPath}/__test/requests`);
@@ -93,6 +93,12 @@ async function fillConnection(page: Page, url: string, publicKey: string, secret
   await page.getByRole('textbox', { name: 'Langfuse base URL' }).fill(url);
   await page.getByRole('textbox', { name: 'Langfuse public key' }).fill(publicKey);
   await page.getByLabel('Langfuse secret key').fill(secretKey);
+}
+
+function assertSecretRedacted(value: unknown): void {
+  const serialized = typeof value === 'string' ? value : JSON.stringify(value);
+  const containsSecret = serialized?.includes(LANGFUSE_SECRET!) ?? false;
+  expect(containsSecret).toBe(false);
 }
 
 type MockEvent = {
