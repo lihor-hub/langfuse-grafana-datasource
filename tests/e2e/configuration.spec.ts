@@ -24,10 +24,10 @@ test('Save & Test succeeds through the Grafana proxy and redacts the saved secre
 
   const saveAndTestStartedAt = Date.now();
   await expect(configPage.saveAndTest({ path: `${proxyPath}/api/public/projects` })).toBeOK();
-  const saveAndTestFinishedAt = Date.now();
   await expect(configPage).toHaveAlert('success', {
     hasText: 'Connected to Langfuse v4 project project-e2e.',
   });
+  const saveAndTestFinishedAt = Date.now();
 
   const settingsResponse = await page.request.get(`/api/datasources/uid/${configPage.datasource.uid}`);
   await expect(settingsResponse).toBeOK();
@@ -41,14 +41,13 @@ test('Save & Test succeeds through the Grafana proxy and redacts the saved secre
   );
   const renderedConfigText = await page.locator('body').textContent();
   const completedBrowserRequests = await Promise.all(browserRequests);
-  const isLegitimateSaveRequest = ({ method, url, body }: BrowserRequest) =>
-    method === 'PUT' &&
-    new URL(url).pathname === `/api/datasources/uid/${configPage.datasource.uid}` &&
-    typeof body === 'string' &&
-    body.includes('secureJsonData') &&
-    body.includes(LANGFUSE_SECRET!);
-  const legitimateSaveRequestIndex = completedBrowserRequests.findIndex(isLegitimateSaveRequest);
-  const legitimateSaveRequestCount = completedBrowserRequests.filter(isLegitimateSaveRequest).length;
+  const expectedSaveRequestUrl = new URL(`/api/datasources/uid/${configPage.datasource.uid}`, page.url()).href;
+  const saveRequestIndexes = completedBrowserRequests.flatMap(({ method, url }, index) =>
+    method === 'PUT' && url === expectedSaveRequestUrl ? [index] : []
+  );
+  const legitimateSaveRequestCount = saveRequestIndexes.length;
+  const legitimateSaveRequestIndex = saveRequestIndexes[0] ?? -1;
+  const saveRequest = completedBrowserRequests[legitimateSaveRequestIndex];
   const otherBrowserRequests = completedBrowserRequests.filter((_, index) => index !== legitimateSaveRequestIndex);
   const laterBrowserRequests = completedBrowserRequests.slice(legitimateSaveRequestIndex + 1);
   const targetsMockLangfuse = completedBrowserRequests.some(({ url }) => {
@@ -59,6 +58,7 @@ test('Save & Test succeeds through the Grafana proxy and redacts the saved secre
 
   expect(legitimateSaveRequestIndex >= 0).toBe(true);
   expect(legitimateSaveRequestCount).toBe(1);
+  sanitizeSaveRequest(saveRequest, expectedSaveRequestUrl);
   expect(laterBrowserRequests.length > 0).toBe(true);
   expect(targetsMockLangfuse).toBe(false);
   expect(sendsBrowserAuthorization).toBe(false);
@@ -96,14 +96,16 @@ test('aborts a delayed Metrics v2 request through the Grafana proxy', async ({
 
   await page.evaluate((url) => {
     const controller = new AbortController();
-    const state: MetricsAbortState = { controller, responseConsumed: false, settled: false };
+    const state: MetricsAbortState = { controller, isAbortError: false, responseConsumed: false, settled: false };
     (window as unknown as { __langfuseMetricsAbortState: MetricsAbortState }).__langfuseMetricsAbortState = state;
     void fetch(url, { signal: controller.signal })
       .then(async (response) => {
         state.responseConsumed = true;
         await response.text();
       })
-      .catch(() => undefined)
+      .catch((error: unknown) => {
+        state.isAbortError = error instanceof DOMException && error.name === 'AbortError';
+      })
       .finally(() => {
         state.settled = true;
       });
@@ -123,6 +125,10 @@ test('aborts a delayed Metrics v2 request through the Grafana proxy', async ({
       { timeout: 5_000 }
     )
     .toBe(true);
+  const settledBeforeAbort = await page.evaluate(
+    () => (window as unknown as { __langfuseMetricsAbortState: MetricsAbortState }).__langfuseMetricsAbortState.settled
+  );
+  expect(settledBeforeAbort).toBe(false);
   await page.evaluate(() => {
     (
       window as unknown as { __langfuseMetricsAbortState: MetricsAbortState }
@@ -154,11 +160,10 @@ test('aborts a delayed Metrics v2 request through the Grafana proxy', async ({
       { timeout: 5_000 }
     )
     .toBe(true);
-  const responseConsumed = await page.evaluate(
-    () =>
-      (window as unknown as { __langfuseMetricsAbortState: MetricsAbortState }).__langfuseMetricsAbortState
-        .responseConsumed
+  const { isAbortError, responseConsumed } = await page.evaluate(
+    () => (window as unknown as { __langfuseMetricsAbortState: MetricsAbortState }).__langfuseMetricsAbortState
   );
+  expect(isAbortError).toBe(true);
   expect(responseConsumed).toBe(false);
 });
 
@@ -211,6 +216,7 @@ type BrowserRequest = {
 
 type MetricsAbortState = {
   controller: AbortController;
+  isAbortError: boolean;
   responseConsumed: boolean;
   settled: boolean;
 };
@@ -239,6 +245,41 @@ function assertSecretRedacted(value: unknown): void {
   const serialized = typeof value === 'string' ? value : JSON.stringify(value);
   const containsSecret = serialized?.includes(LANGFUSE_SECRET!) ?? false;
   expect(containsSecret).toBe(false);
+}
+
+function sanitizeSaveRequest(saveRequest: BrowserRequest | undefined, expectedUrl: string): void {
+  const hasExpectedRequest = saveRequest?.method === 'PUT' && saveRequest.url === expectedUrl;
+  expect(hasExpectedRequest).toBe(true);
+  if (!saveRequest) {
+    throw new Error('Expected one Grafana data source save request');
+  }
+
+  assertSecretRedacted(saveRequest.url);
+  assertSecretRedacted(saveRequest.headers);
+
+  let parsedBody: unknown;
+  try {
+    parsedBody = JSON.parse(saveRequest.body ?? 'null');
+  } catch {
+    throw new Error('Expected the Grafana data source save request to contain a JSON body');
+  }
+  const hasSaveBody = isRecord(parsedBody) && isRecord(parsedBody.secureJsonData);
+  expect(hasSaveBody).toBe(true);
+  if (!isRecord(parsedBody) || !isRecord(parsedBody.secureJsonData)) {
+    throw new Error('Expected secureJsonData in the Grafana data source save request');
+  }
+
+  const secureJsonData = parsedBody.secureJsonData;
+  const hasExpectedSecret = secureJsonData.basicAuthPassword === LANGFUSE_SECRET;
+  expect(hasExpectedSecret).toBe(true);
+  secureJsonData.basicAuthPassword = '[REDACTED]';
+
+  const sanitizedSaveRequest = { ...saveRequest, body: parsedBody };
+  assertSecretRedacted(sanitizedSaveRequest);
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 function assertGrafanaAuthFailureBody(body: string): void {

@@ -57,7 +57,6 @@ describe('repository configuration', () => {
 
     expect(e2eTest).not.toMatch(/\.not\.toContain\(LANGFUSE_SECRET/);
     expect(e2eTest).not.toContain('JSON.stringify(completedBrowserRequests)');
-    expect(e2eTest.match(/assertSecretRedacted\(/g)).toHaveLength(6);
     expect(e2eTest).toContain('expect(containsSecret).toBe(false)');
   });
 
@@ -105,9 +104,12 @@ describe('repository configuration', () => {
 
   it('verifies the real Save & Test observation probe uses a bounded one-hour ISO window', () => {
     const e2eTest = repositoryFile('tests/e2e/configuration.spec.ts');
+    const successAlertCompleted = e2eTest.indexOf("await expect(configPage).toHaveAlert('success'");
+    const saveAndTestFinished = e2eTest.indexOf('const saveAndTestFinishedAt = Date.now()');
 
     expect(e2eTest).toContain('const saveAndTestStartedAt = Date.now()');
-    expect(e2eTest).toContain('const saveAndTestFinishedAt = Date.now()');
+    expect(successAlertCompleted).toBeGreaterThan(-1);
+    expect(saveAndTestFinished).toBeGreaterThan(successAlertCompleted);
     expect(e2eTest).toContain('assertObservationProbeWindow(');
     expect(e2eTest).toContain('toTime - fromTime === 60 * 60 * 1000');
   });
@@ -116,8 +118,12 @@ describe('repository configuration', () => {
     const e2eTest = repositoryFile('tests/e2e/configuration.spec.ts');
 
     expect(e2eTest).toContain('captureRelevantBrowserRequests(page)');
-    expect(e2eTest).toContain("body.includes('secureJsonData')");
-    expect(e2eTest).toContain('const legitimateSaveRequestIndex =');
+    expect(e2eTest).toContain('sanitizeSaveRequest(');
+    expect(e2eTest).toContain('assertSecretRedacted(saveRequest.url)');
+    expect(e2eTest).toContain('assertSecretRedacted(saveRequest.headers)');
+    expect(e2eTest).toContain('secureJsonData.basicAuthPassword === LANGFUSE_SECRET');
+    expect(e2eTest).toContain("secureJsonData.basicAuthPassword = '[REDACTED]'");
+    expect(e2eTest).toContain('assertSecretRedacted(sanitizedSaveRequest)');
     expect(e2eTest).toContain('await configPage.goto()');
     expect(e2eTest).toContain('const laterBrowserRequests =');
     expect(e2eTest).toContain('assertSecretRedacted(laterBrowserRequests)');
@@ -131,6 +137,9 @@ describe('repository configuration', () => {
     expect(e2eTest).toContain('new AbortController()');
     expect(e2eTest).toMatch(/expect\s*\.poll/);
     expect(e2eTest).toContain('event.aborted');
+    expect(e2eTest).toContain('expect(settledBeforeAbort).toBe(false)');
+    expect(e2eTest).toContain('isAbortError');
+    expect(e2eTest).toContain('expect(isAbortError).toBe(true)');
     expect(e2eTest).toContain('expect(responseConsumed).toBe(false)');
     expect(e2eTest).not.toContain('waitForTimeout');
   });
