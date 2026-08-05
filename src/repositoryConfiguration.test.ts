@@ -60,4 +60,11 @@ describe('repository configuration', () => {
     expect(e2eTest.match(/assertSecretRedacted\(/g)).toHaveLength(4);
     expect(e2eTest).toContain('expect(containsSecret).toBe(false)');
   });
+
+  it('disables only the external i18next support notice in Jest', () => {
+    const jestSetup = repositoryFile('jest-setup.js');
+
+    expect(jestSetup).toContain("process.env.I18NEXT_NO_SUPPORT_NOTICE = 'true';");
+    expect(jestSetup).not.toMatch(/(?:spyOn\(console, ['"]info['"]\)|console\.info\s*=)/);
+  });
 });
