@@ -1,0 +1,57 @@
+services:
+  grafana:
+    extends:
+      file: .config/docker-compose-base.yaml
+      service: grafana
+    depends_on:
+      mock-langfuse:
+        condition: service_healthy
+      mock-langfuse-no-v2:
+        condition: service_healthy
+    environment:
+      LANGFUSE_E2E_PUBLIC_KEY: ${LANGFUSE_E2E_PUBLIC_KEY:?set it}
+      LANGFUSE_E2E_SECRET: ${LANGFUSE_E2E_SECRET:?set it}
+
+  mock-langfuse:
+    image: node:22-alpine
+    working_dir: /workspace
+    command: ['node', '--experimental-strip-types', 'tests/mock-langfuse/server.ts']
+    volumes:
+      - .:/workspace:ro
+    environment:
+      LANGFUSE_E2E_PUBLIC_KEY: ${LANGFUSE_E2E_PUBLIC_KEY:?set it}
+      LANGFUSE_E2E_SECRET: ${LANGFUSE_E2E_SECRET:?set it}
+      LANGFUSE_E2E_MODE: normal
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:8080/__test/health').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 1s
+      timeout: 1s
+      retries: 30
+
+  mock-langfuse-no-v2:
+    image: node:22-alpine
+    working_dir: /workspace
+    command: ['node', '--experimental-strip-types', 'tests/mock-langfuse/server.ts']
+    volumes:
+      - .:/workspace:ro
+    environment:
+      LANGFUSE_E2E_PUBLIC_KEY: ${LANGFUSE_E2E_PUBLIC_KEY:?set it}
+      LANGFUSE_E2E_SECRET: ${LANGFUSE_E2E_SECRET:?set it}
+      LANGFUSE_E2E_MODE: no-v2
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:8080/__test/health').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 1s
+      timeout: 1s
+      retries: 30

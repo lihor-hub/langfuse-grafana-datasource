@@ -1,0 +1,18 @@
+apiVersion: 1
+
+datasources:
+  - name: 'Langfuse'
+    type: 'lihorhub-langfuse-datasource'
+    uid: 'langfuse-e2e'
+    access: proxy
+    url: 'http://mock-langfuse:8080'
+    basicAuth: true
+    basicAuthUser: '$LANGFUSE_E2E_PUBLIC_KEY'
+    isDefault: false
+    orgId: 1
+    version: 1
+    editable: true
+    jsonData:
+      timeout: 30
+    secureJsonData:
+      basicAuthPassword: '$LANGFUSE_E2E_SECRET'
