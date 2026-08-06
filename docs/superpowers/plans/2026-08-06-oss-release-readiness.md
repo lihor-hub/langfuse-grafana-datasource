@@ -32,6 +32,7 @@ markdown-link-check.
 - Do not add unavailable install commands, fake badges, fabricated screenshots,
   real credentials, private hosts, or customer observability data.
 - Keep Issues enabled, Wiki and Discussions disabled, and Homepage unset.
+- Enable automatic deletion of pull-request head branches after merge.
 - Apply only the approved description and topics to live GitHub metadata.
 - Prepare the `main` ruleset as an unapplied template because GitHub currently
   rejects rulesets for this private repository on its plan.
@@ -305,14 +306,14 @@ markdown-link-check.
 
 - Produces live GitHub description and topics matching
   `docs/maintainers/github-settings.md` while preserving private visibility and
-  existing feature settings.
+  existing feature settings except for the approved merged-branch cleanup.
 
 - [ ] **Step 1: Capture live settings before mutation**
 
   Run:
 
   ```bash
-  gh repo view lihor-hub/langfuse-grafana-datasource --json description,visibility,homepageUrl,repositoryTopics,hasIssuesEnabled,hasWikiEnabled,hasDiscussionsEnabled
+  gh repo view lihor-hub/langfuse-grafana-datasource --json description,visibility,homepageUrl,repositoryTopics,hasIssuesEnabled,hasWikiEnabled,hasDiscussionsEnabled,deleteBranchOnMerge
   ```
 
   Expected: visibility is `PRIVATE`; record the remaining values in command
@@ -333,22 +334,25 @@ markdown-link-check.
     --add-topic observability \
     --add-topic monitoring \
     --add-topic typescript
+  gh repo edit lihor-hub/langfuse-grafana-datasource \
+    --delete-branch-on-merge
   ```
 
-  Do not pass `--visibility`, `--homepage`, or any feature toggle.
+  Do not pass `--visibility`, `--homepage`, or any other feature toggle.
 
 - [ ] **Step 3: Verify live settings and ruleset deferral**
 
   Run:
 
   ```bash
-  gh repo view lihor-hub/langfuse-grafana-datasource --json description,visibility,homepageUrl,repositoryTopics,hasIssuesEnabled,hasWikiEnabled,hasDiscussionsEnabled
+  gh repo view lihor-hub/langfuse-grafana-datasource --json description,visibility,homepageUrl,repositoryTopics,hasIssuesEnabled,hasWikiEnabled,hasDiscussionsEnabled,deleteBranchOnMerge
   gh api repos/lihor-hub/langfuse-grafana-datasource/rulesets
   ```
 
   Expected: description and seven topics match, visibility remains `PRIVATE`,
   homepage remains empty, Issues remain enabled, Wiki and Discussions remain
-  disabled, and rulesets still return the documented plan-related HTTP 403.
+  disabled, merged head branches are deleted automatically, and rulesets still
+  return the documented plan-related HTTP 403.
 
 - [ ] **Step 4: Run the complete local verification suite**
 

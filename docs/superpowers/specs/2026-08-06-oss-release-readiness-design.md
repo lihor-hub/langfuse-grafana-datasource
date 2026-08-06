@@ -173,6 +173,7 @@ The following metadata is safe to apply while the repository stays private:
 - Issues: enabled.
 - Wiki: disabled.
 - Discussions: disabled.
+- Delete head branches after merge: enabled.
 - Homepage: unset until the Grafana catalog page exists.
 
 Visibility must remain `private`. The implementation records the settings in a
@@ -197,6 +198,9 @@ The prepared `main` ruleset will:
 - require approval from someone other than the last pusher;
 - require all review conversations to be resolved; and
 - allow squash and rebase merging, but not merge commits.
+
+The repository setting that automatically deletes a pull request's head branch
+after merge is enabled separately; it is not part of the ruleset API payload.
 
 No bypass actor is encoded in the template. A maintainer must review GitHub's
 displayed rules and available emergency-access policy before activation. Status
@@ -331,4 +335,3 @@ The OSS-readiness change is complete when:
 - the live description and topics match the recorded metadata;
 - no secret-like values or unsupported release claims are present; and
 - `git diff --check` reports no whitespace errors.
-

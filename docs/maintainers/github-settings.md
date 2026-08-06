@@ -16,12 +16,13 @@ explicit maintainer authorization.
 | Issues | Enabled |
 | Wiki | Disabled |
 | Discussions | Disabled |
+| Delete head branches after merge | Enabled |
 
 Confirm the live state without changing it:
 
 ```bash
 gh repo view lihor-hub/langfuse-grafana-datasource \
-  --json description,visibility,homepageUrl,repositoryTopics,hasIssuesEnabled,hasWikiEnabled,hasDiscussionsEnabled
+  --json description,visibility,homepageUrl,repositoryTopics,hasIssuesEnabled,hasWikiEnabled,hasDiscussionsEnabled,deleteBranchOnMerge
 ```
 
 ## Default-branch protection
@@ -40,6 +41,11 @@ The template targets the default branch and:
   pusher;
 - requires resolution of review conversations; and
 - permits squash and rebase merges, but not merge commits.
+
+Automatic deletion of a pull request's head branch after merge is a separate
+repository setting, not a ruleset rule. It is enabled to keep merged branches
+from accumulating. GitHub does not delete protected branches or branches that
+are still open in another pull request.
 
 There are deliberately no bypass actors. Before activation, decide and document
 how emergency recovery will work without silently weakening routine protection.
