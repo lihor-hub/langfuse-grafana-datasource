@@ -120,11 +120,11 @@ function checkWorkflow(workflow) {
   assert.equal(job.name, 'Repository readiness');
   assert.equal(job['runs-on'], 'ubuntu-24.04');
   assert.deepEqual(job.steps[0], {
-    uses: 'actions/checkout@11d5960a326750d5838078e36cf38b85af677262',
+    uses: 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1',
     with: { 'fetch-depth': 0, 'persist-credentials': false },
   });
   assert.deepEqual(job.steps[1], {
-    uses: 'actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020',
+    uses: 'actions/setup-node@820762786026740c76f36085b0efc47a31fe5020',
     with: { 'node-version-file': '.nvmrc', cache: 'npm' },
   });
   assert(job.steps.some((step) => step.run === 'npm ci'), 'workflow must install the lockfile');
