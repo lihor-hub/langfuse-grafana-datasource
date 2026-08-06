@@ -280,7 +280,7 @@ markdown-link-check.
 
   ```bash
   npx --yes markdownlint-cli2@0.18.1 '**/*.md' '#docs/superpowers/plans/**' '#docs/superpowers/specs/**'
-  npx --yes markdown-link-check@3.13.7 README.md docs/maintainers/releasing.md docs/maintainers/grafana-catalog-launch.md
+  npx --yes markdown-link-check@3.13.7 --config .markdown-link-check.json README.md docs/maintainers/releasing.md docs/maintainers/grafana-catalog-launch.md
   git diff --check
   ```
 
@@ -358,7 +358,7 @@ markdown-link-check.
   ruby -e 'require "yaml"; Dir[".github/ISSUE_TEMPLATE/*.yml"].each { |f| YAML.safe_load(File.read(f), aliases: false) }'
   jq empty .github/rulesets/main.json
   npx --yes markdownlint-cli2@0.18.1 '**/*.md' '#docs/superpowers/plans/**' '#docs/superpowers/specs/**'
-  npx --yes markdown-link-check@3.13.7 README.md CONTRIBUTING.md SECURITY.md SUPPORT.md docs/maintainers/github-settings.md docs/maintainers/releasing.md docs/maintainers/grafana-catalog-launch.md
+  npx --yes markdown-link-check@3.13.7 --config .markdown-link-check.json README.md CONTRIBUTING.md SECURITY.md SUPPORT.md docs/maintainers/github-settings.md docs/maintainers/releasing.md docs/maintainers/grafana-catalog-launch.md
   rg -n -i '(sk-[a-z0-9_-]{16,}|pk-lf-[a-z0-9_-]{8,}|sk-lf-[a-z0-9_-]{8,}|gh[pousr]_[A-Za-z0-9_]{20,})' --glob '!docs/superpowers/**' . && exit 1 || true
   git diff --check
   git status --short

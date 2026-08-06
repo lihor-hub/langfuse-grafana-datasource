@@ -81,8 +81,14 @@ compatibility evidence before publication.
 
 ## Maintainers
 
-Release and Grafana catalog procedures will be maintained separately from
-ordinary contributor guidance so privileged actions always remain explicit.
+Privileged publication work is separated from ordinary contributor guidance:
+
+- [Release runbook](docs/maintainers/releasing.md)
+- [Grafana catalog launch](docs/maintainers/grafana-catalog-launch.md)
+- [GitHub repository settings](docs/maintainers/github-settings.md)
+
+These documents prepare future actions; they do not authorize a release,
+visibility change, ruleset activation, signing operation, or catalog submission.
 
 ## License and trademarks
 
