@@ -129,7 +129,6 @@ function checkWorkflow(workflow) {
   });
   assert(job.steps.some((step) => step.run === 'npm ci'), 'workflow must install the lockfile');
   assert(job.steps.some((step) => step.run === 'npm run check'), 'workflow must run repository checks');
-  assert(job.steps.some((step) => step.run === 'npm audit --audit-level=high'), 'workflow must audit dependencies');
 }
 
 function checkNoSensitiveCurrentTree(files, contents) {

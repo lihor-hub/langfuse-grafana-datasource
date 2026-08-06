@@ -35,6 +35,7 @@ npm run e2e
 ```
 
 Do not commit those values or place them in provisioning files.
+
 ## Project status
 
 The plugin implementation is in pre-release verification. There is currently
