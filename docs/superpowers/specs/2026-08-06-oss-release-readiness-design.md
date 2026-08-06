@@ -202,11 +202,12 @@ The prepared `main` ruleset will:
 The repository setting that automatically deletes a pull request's head branch
 after merge is enabled separately; it is not part of the ruleset API payload.
 
-No bypass actor is encoded in the template. A maintainer must review GitHub's
-displayed rules and available emergency-access policy before activation. Status
-checks are added only after CI exists and their exact stable job names are
-known; the release runbook requires checks for formatting/linting, type checks,
-unit tests, build, plugin validation, and the supported Grafana E2E matrix.
+The original no-bypass decision is superseded for the public pre-release by the
+approved [public pre-release design](2026-08-06-public-prerelease-design.md):
+the repository administrator may bypass approval only through a pull request.
+The pre-release ruleset requires the stable `Repository readiness` check;
+future plugin CI must add formatting/linting, type checks, unit tests, build,
+plugin validation, and the supported Grafana E2E matrix before a plugin release.
 
 ## Release documentation
 

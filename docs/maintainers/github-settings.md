@@ -17,6 +17,7 @@ explicit maintainer authorization.
 | Wiki | Disabled |
 | Discussions | Disabled |
 | Delete head branches after merge | Enabled |
+| Required pre-release status check | `Repository readiness` |
 
 Confirm the live state without changing it:
 
@@ -47,6 +48,11 @@ repository setting, not a ruleset rule. It is enabled to keep merged branches
 from accumulating. GitHub does not delete protected branches or branches that
 are still open in another pull request.
 
+The only bypass actor is the repository administrator in `pull_request` mode.
+This permits a sole maintainer to merge a passing pull request without an
+outside approval but does not permit direct pushes, force pushes, or bypassing
+the required `Repository readiness` check.
+
 There are deliberately no bypass actors. Before activation, decide and document
 how emergency recovery will work without silently weakening routine protection.
 
@@ -56,8 +62,9 @@ GitHub currently returns HTTP 403 when rulesets are queried for this private
 repository because the repository's current plan does not provide that feature.
 Do not make the repository public merely to work around that restriction.
 
-Protection activation also waits for stable CI job names. Before applying the
-ruleset, update its `rules` array with required status checks for:
+Protection activation waits for a successful `Repository readiness` run on
+`main`. The ruleset already requires that exact context. Future plugin CI may
+add required checks for:
 
 - formatting or linting;
 - TypeScript type checking;
@@ -67,7 +74,7 @@ ruleset, update its `rules` array with required status checks for:
 - the supported Grafana end-to-end matrix.
 
 Use the exact job names reported by successful runs on the default branch. Do
-not guess names or require checks that have never completed successfully.
+not add a required check that has never completed successfully.
 
 ## Activation procedure
 

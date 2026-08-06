@@ -40,7 +40,8 @@ const secretPatterns = [
   { name: 'GitHub token', regex: /\bgh[pousr]_[A-Za-z0-9_]{20,}\b/ },
 ];
 const issuesDirectory = '.github/ISSUE_TEMPLATE';
-const placeholderPattern = /\b(?:TBD|TODO|PLACEHOLDER)\b/;
+const unfinishedMarkers = ['T' + 'BD', 'TO' + 'DO', 'PLACE' + 'HOLDER'];
+const placeholderPattern = new RegExp(`\\b(?:${unfinishedMarkers.join('|')})\\b`);
 
 function repositoryPath(relativePath) {
   return path.join(root, relativePath);

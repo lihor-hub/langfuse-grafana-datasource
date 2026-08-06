@@ -91,6 +91,7 @@ blocking findings.
 
 Inspect the actual GitHub Actions run and require successful jobs for:
 
+- repository readiness;
 - formatting or linting;
 - TypeScript type checking;
 - unit tests;
