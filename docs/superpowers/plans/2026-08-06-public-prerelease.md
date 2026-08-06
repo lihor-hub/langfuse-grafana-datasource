@@ -81,7 +81,7 @@ CLI, GitHub REST API, and `jq`.
   ```json
   {
     "check:repository": "node scripts/validate-repository.mjs",
-    "check:markdown": "markdownlint-cli2 '**/*.md' '#docs/superpowers/plans/**' '#docs/superpowers/specs/**'",
+    "check:markdown": "markdownlint-cli2 '**/*.md' '#node_modules/**' '#docs/superpowers/plans/**' '#docs/superpowers/specs/**'",
     "check:links": "markdown-link-check --config .markdown-link-check.json README.md CONTRIBUTING.md SECURITY.md SUPPORT.md CODE_OF_CONDUCT.md CHANGELOG.md AGENTS.md docs/agents/domain.md docs/agents/issue-tracker.md docs/agents/triage-labels.md docs/agents/repository-rules.md docs/maintainers/github-settings.md docs/maintainers/releasing.md docs/maintainers/grafana-catalog-launch.md",
     "check": "npm run check:repository && npm run check:markdown && npm run check:links"
   }

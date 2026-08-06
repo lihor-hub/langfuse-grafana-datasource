@@ -11,7 +11,12 @@
     "lint:fix": "npm run lint -- --fix && prettier --write --list-different .",
     "e2e": "playwright test",
     "server": "docker compose up --build",
-    "sign": "sign-plugin"
+    "sign": "sign-plugin",
+    "check:repository": "node scripts/validate-repository.mjs",
+    "check:markdown": "markdownlint-cli2 '**/*.md' '#node_modules/**' '#docs/superpowers/plans/**' '#docs/superpowers/specs/**'",
+    "check:links": "markdown-link-check --config .markdown-link-check.json README.md CONTRIBUTING.md SECURITY.md SUPPORT.md CODE_OF_CONDUCT.md CHANGELOG.md AGENTS.md docs/agents/domain.md docs/agents/issue-tracker.md docs/agents/triage-labels.md docs/agents/repository-rules.md docs/maintainers/github-settings.md docs/maintainers/releasing.md docs/maintainers/grafana-catalog-launch.md",
+    "check:links:public": "markdown-link-check --config .markdown-link-check.public.json README.md CONTRIBUTING.md SECURITY.md SUPPORT.md CODE_OF_CONDUCT.md CHANGELOG.md AGENTS.md docs/agents/domain.md docs/agents/issue-tracker.md docs/agents/triage-labels.md docs/agents/repository-rules.md docs/maintainers/github-settings.md docs/maintainers/releasing.md docs/maintainers/grafana-catalog-launch.md",
+    "check": "npm run check:repository && npm run check:markdown && npm run check:links"
   },
   "author": "Lihor",
   "license": "Apache-2.0",
@@ -51,6 +56,8 @@
     "imports-loader": "^5.0.0",
     "jest": "^30.4.2",
     "jest-environment-jsdom": "^30.4.1",
+    "markdown-link-check": "3.15.0",
+    "markdownlint-cli2": "0.23.2",
     "prettier": "^3.6.0",
     "replace-in-file-webpack-plugin": "^1.0.0",
     "sass": "^1.89.0",
@@ -65,7 +72,8 @@
     "webpack-cli": "^6.0.0",
     "webpack-livereload-plugin": "^3.0.2",
     "webpack-subresource-integrity": "^5.1.0",
-    "webpack-virtual-modules": "^0.6.2"
+    "webpack-virtual-modules": "^0.6.2",
+    "yaml": "2.9.0"
   },
   "engines": {
     "node": ">=22 <23"
