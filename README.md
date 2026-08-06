@@ -4,6 +4,10 @@ A frontend-only, read-only Grafana data source for Langfuse v4 observability
 data. Langfuse API credentials are stored by Grafana and attached server-side
 by the Grafana data proxy; the browser plugin receives only the proxy URL.
 
+> [!IMPORTANT]
+> **Pre-release:** the plugin is not yet published to the Grafana catalog.
+> Development and verification continue before the first supported release.
+
 ## Requirements
 
 - Grafana 12.3.0 or newer
@@ -31,3 +35,59 @@ npm run e2e
 ```
 
 Do not commit those values or place them in provisioning files.
+## Project status
+
+The plugin implementation is in pre-release verification. There is currently
+no catalog listing, supported upgrade path, or compatibility guarantee.
+
+Issues are welcome for design feedback, use cases, and defects found while the
+project is being prepared. Pull requests are paused until the maintainer has
+verified and published the first release. See [Contributing](CONTRIBUTING.md).
+
+## Security model
+
+The plugin is designed to be frontend-only and read-only:
+
+- Grafana's server-side data proxy will hold and apply Langfuse Basic Auth
+  credentials.
+- The Langfuse secret key must not appear in dashboard queries, browser logs,
+  fixtures, screenshots, issues, or committed provisioning files.
+- Plugin-owned interfaces will expose only the required Langfuse read
+  operations and no generic request or mutation method.
+
+Grafana's generic data proxy is not a complete HTTP-method firewall. Operators
+that require hard upstream write prevention should also use credentials whose
+Langfuse authorization is independently restricted. Report potential security
+problems through the private process in [Security](SECURITY.md).
+
+## Planned compatibility
+
+| Component | Planned baseline |
+| --- | --- |
+| Grafana | 12.3.0 or newer |
+| Langfuse | Server v4 |
+| Node.js for development | 22 |
+
+The release documentation will replace planned compatibility with tested
+compatibility evidence before publication.
+
+## Getting help and sharing feedback
+
+- Review [Support](SUPPORT.md) to choose the right support channel.
+- Use the [issue forms](https://github.com/lihor-hub/langfuse-grafana-datasource/issues/new/choose)
+  for reproducible defects and focused feature requests.
+- Do not put credentials, private hostnames, or customer observability data in
+  an issue.
+
+## Maintainers
+
+Release and Grafana catalog procedures will be maintained separately from
+ordinary contributor guidance so privileged actions always remain explicit.
+
+## License and trademarks
+
+Licensed under the [Apache License 2.0](LICENSE).
+
+Grafana is a trademark of Grafana Labs. Langfuse is a trademark of its
+respective owner. This independent community project is not affiliated with,
+endorsed by, or sponsored by Grafana Labs or Langfuse.
