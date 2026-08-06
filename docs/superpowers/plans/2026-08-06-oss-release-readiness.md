@@ -146,7 +146,7 @@ markdown-link-check.
   Run:
 
   ```bash
-  ruby -e 'require "yaml"; %w[bug_report.yml feature_request.yml config.yml].each { |f| YAML.safe_load_file(".github/ISSUE_TEMPLATE/#{f}") }'
+  ruby -e 'require "yaml"; %w[bug_report.yml feature_request.yml config.yml].each { |f| YAML.safe_load(File.read(".github/ISSUE_TEMPLATE/#{f}"), aliases: false) }'
   jq -e '.target == "branch" and .enforcement == "active"' .github/rulesets/main.json
   ```
 
@@ -207,7 +207,7 @@ markdown-link-check.
   Run:
 
   ```bash
-  ruby -e 'require "yaml"; %w[bug_report.yml feature_request.yml config.yml].each { |f| data = YAML.safe_load_file(".github/ISSUE_TEMPLATE/#{f}"); raise f unless data.is_a?(Hash) }'
+  ruby -e 'require "yaml"; %w[bug_report.yml feature_request.yml config.yml].each { |f| data = YAML.safe_load(File.read(".github/ISSUE_TEMPLATE/#{f}"), aliases: false); raise f unless data.is_a?(Hash) }'
   jq -e '.name == "Protect main" and .conditions.ref_name.include[0] == "~DEFAULT_BRANCH" and ([.rules[].type] | index("pull_request") != null)' .github/rulesets/main.json
   rg -n '@ioachim-hub' .github/CODEOWNERS
   git diff --check
@@ -355,7 +355,7 @@ markdown-link-check.
   Run:
 
   ```bash
-  ruby -e 'require "yaml"; Dir[".github/ISSUE_TEMPLATE/*.yml"].each { |f| YAML.safe_load_file(f) }'
+  ruby -e 'require "yaml"; Dir[".github/ISSUE_TEMPLATE/*.yml"].each { |f| YAML.safe_load(File.read(f), aliases: false) }'
   jq empty .github/rulesets/main.json
   npx --yes markdownlint-cli2@0.18.1 '**/*.md' '#docs/superpowers/plans/**' '#docs/superpowers/specs/**'
   npx --yes markdown-link-check@3.13.7 README.md CONTRIBUTING.md SECURITY.md SUPPORT.md docs/maintainers/github-settings.md docs/maintainers/releasing.md docs/maintainers/grafana-catalog-launch.md
@@ -380,4 +380,3 @@ markdown-link-check.
   Expected: three focused implementation commits after the design and plan
   commits, containing only OSS-readiness files and the approved metadata having
   been applied externally.
-

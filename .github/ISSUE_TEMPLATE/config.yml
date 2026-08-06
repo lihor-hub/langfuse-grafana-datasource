@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability privately
+    url: https://github.com/lihor-hub/langfuse-grafana-datasource/security/advisories/new
+    about: Do not disclose vulnerabilities or credentials in a public issue.
+  - name: Ask a Grafana product question
+    url: https://grafana.com/community/
+    about: Use Grafana's community resources for questions not caused by this plugin.
+  - name: Ask a Langfuse product question
+    url: https://langfuse.com/docs
+    about: Use Langfuse resources for API, server, or deployment questions.
