@@ -1,13 +1,1 @@
-{
-  "ignorePatterns": [
-    {
-      "pattern": "^https://github\\.com/lihor-hub/langfuse-grafana-datasource/issues(?:/new/choose)?$"
-    },
-    {
-      "pattern": "^https://github\\.com/lihor-hub/langfuse-grafana-datasource/security(?:/advisories/new)?$"
-    },
-    {
-      "pattern": "^https://github\\.com/lihor-hub/langfuse-grafana-datasource/commits/main$"
-    }
-  ]
-}
+{}
