@@ -1,0 +1,102 @@
+name: Bug report
+description: Report reproducible incorrect behavior in the plugin
+title: "[Bug]: "
+labels:
+  - bug
+  - needs-triage
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve the project. The plugin is pre-release, so use a commit SHA when no released plugin version exists.
+
+        Do not include credentials, authorization headers, private hostnames, personal data, or customer observability data. Report vulnerabilities through the Security tab instead.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: Briefly describe the incorrect behavior and its impact.
+      placeholder: A metrics query returns an empty frame when...
+    validations:
+      required: true
+  - type: input
+    id: plugin-version
+    attributes:
+      label: Plugin version or commit
+      description: Use a release version when available; otherwise provide the full commit SHA.
+      placeholder: 0.1.0 or 0123456789abcdef...
+    validations:
+      required: true
+  - type: input
+    id: grafana-version
+    attributes:
+      label: Grafana version
+      placeholder: 12.3.0
+    validations:
+      required: true
+  - type: input
+    id: langfuse-version
+    attributes:
+      label: Langfuse version
+      description: Include the exact self-hosted version or the Langfuse Cloud region.
+      placeholder: 4.x.y self-hosted or Langfuse Cloud EU
+    validations:
+      required: true
+  - type: dropdown
+    id: deployment
+    attributes:
+      label: Langfuse deployment
+      options:
+        - Langfuse Cloud
+        - Self-hosted
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and version
+      placeholder: Firefox 141
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      description: Provide the smallest deterministic reproduction using synthetic data.
+      placeholder: |
+        1. Configure...
+        2. Create a query...
+        3. Observe...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      placeholder: The query should...
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      placeholder: Instead, the query...
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Redacted logs or screenshots
+      description: Paste only the minimum evidence needed after removing sensitive values.
+      render: shell
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Safety and duplicate checks
+      options:
+        - label: I searched existing issues for this behavior.
+          required: true
+        - label: I removed credentials, authorization data, private hosts, personal data, and customer observability data.
+          required: true
+        - label: This is not a vulnerability report.
+          required: true

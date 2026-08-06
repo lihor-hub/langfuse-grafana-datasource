@@ -16,3 +16,8 @@ Use the standard `needs-triage`, `needs-info`, `ready-for-agent`,
 ### Domain docs
 
 This is a single-context repository. See `docs/agents/domain.md`.
+
+### Repository rules
+
+Security, scope, verification, documentation, contribution, and privileged
+release rules apply repository-wide. See `docs/agents/repository-rules.md`.
