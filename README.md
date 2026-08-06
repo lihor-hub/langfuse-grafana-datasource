@@ -43,7 +43,8 @@ no catalog listing, supported upgrade path, or compatibility guarantee.
 
 Issues are welcome for design feedback, use cases, and defects found while the
 project is being prepared. Pull requests are paused until the maintainer has
-verified and published the first release. See [Contributing](CONTRIBUTING.md).
+verified and published the first release. See
+[Contributing](https://github.com/lihor-hub/langfuse-grafana-datasource/blob/main/CONTRIBUTING.md).
 
 ## Security model
 
@@ -59,7 +60,8 @@ The plugin is designed to be frontend-only and read-only:
 Grafana's generic data proxy is not a complete HTTP-method firewall. Operators
 that require hard upstream write prevention should also use credentials whose
 Langfuse authorization is independently restricted. Report potential security
-problems through the private process in [Security](SECURITY.md).
+problems through the private process in
+[Security](https://github.com/lihor-hub/langfuse-grafana-datasource/blob/main/SECURITY.md).
 
 ## Planned compatibility
 
@@ -74,7 +76,8 @@ compatibility evidence before publication.
 
 ## Getting help and sharing feedback
 
-- Review [Support](SUPPORT.md) to choose the right support channel.
+- Review [Support](https://github.com/lihor-hub/langfuse-grafana-datasource/blob/main/SUPPORT.md)
+  to choose the right support channel.
 - Use the [issue forms](https://github.com/lihor-hub/langfuse-grafana-datasource/issues/new/choose)
   for reproducible defects and focused feature requests.
 - Do not put credentials, private hostnames, or customer observability data in
@@ -84,16 +87,17 @@ compatibility evidence before publication.
 
 Privileged publication work is separated from ordinary contributor guidance:
 
-- [Release runbook](docs/maintainers/releasing.md)
-- [Grafana catalog launch](docs/maintainers/grafana-catalog-launch.md)
-- [GitHub repository settings](docs/maintainers/github-settings.md)
+- [Release runbook](https://github.com/lihor-hub/langfuse-grafana-datasource/blob/main/docs/maintainers/releasing.md)
+- [Grafana catalog launch](https://github.com/lihor-hub/langfuse-grafana-datasource/blob/main/docs/maintainers/grafana-catalog-launch.md)
+- [GitHub repository settings](https://github.com/lihor-hub/langfuse-grafana-datasource/blob/main/docs/maintainers/github-settings.md)
 
 These documents prepare future actions; they do not authorize a release,
 visibility change, ruleset activation, signing operation, or catalog submission.
 
 ## License and trademarks
 
-Licensed under the [Apache License 2.0](LICENSE).
+Licensed under the
+[Apache License 2.0](https://github.com/lihor-hub/langfuse-grafana-datasource/blob/main/LICENSE).
 
 Grafana is a trademark of Grafana Labs. Langfuse is a trademark of its
 respective owner. This independent community project is not affiliated with,
