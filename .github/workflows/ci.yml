@@ -217,6 +217,17 @@ jobs:
         id: run-tests
         run: npm run e2e
 
+      - name: Upload synthetic dashboard evidence
+        if: ${{ always() && steps.run-tests.outcome != 'skipped' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: dashboard-${{ matrix.GRAFANA_IMAGE.VERSION }}
+          path: |
+            test-results/**/platform-observability.png
+            test-results/e2e-dashboard*/error-context.md
+          retention-days: 5
+          if-no-files-found: ignore
+
       - name: Docker logs
         if: ${{ always() && steps.run-tests.outcome == 'failure' }}
         run: |
