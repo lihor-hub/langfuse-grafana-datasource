@@ -12,7 +12,7 @@ by the Grafana data proxy; the browser plugin receives only the proxy URL.
 
 - Grafana 12.3.0 or newer
 - Langfuse v4
-- Node.js 22 for development
+- Node.js 22.22.2 or newer within the 22.x release line for development
 
 ## Development
 
@@ -69,7 +69,7 @@ problems through the private process in
 | --- | --- |
 | Grafana | 12.3.0 or newer |
 | Langfuse | Server v4 |
-| Node.js for development | 22 |
+| Node.js for development | 22.22.2 or newer within 22.x |
 
 The release documentation will replace planned compatibility with tested
 compatibility evidence before publication.

@@ -15,3 +15,6 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 ### Changed
 
 - Prepared the repository for the first public pre-release verification.
+- Updated Grafana lint tooling using its public configuration entrypoint and
+  retained ESLint 9 for React plugin compatibility.
+- Raised the development Node.js minimum to 22.22.2 for updated lint tooling.
