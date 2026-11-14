@@ -3,6 +3,7 @@ import type { DataQuery } from '@grafana/schema';
 
 export interface LangfuseQuery extends DataQuery {
   kind?: 'metrics' | 'observations' | 'scores';
+  metricsQuery?: string;
 }
 
 export interface LangfuseDataSourceOptions extends DataSourceJsonData {

@@ -1,0 +1,11 @@
+apiVersion: 1
+
+providers:
+  - name: Langfuse examples
+    orgId: 1
+    folder: Langfuse
+    type: file
+    disableDeletion: true
+    allowUiUpdates: false
+    options:
+      path: /etc/grafana/provisioning/dashboards

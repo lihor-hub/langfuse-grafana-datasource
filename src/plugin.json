@@ -25,6 +25,13 @@
     "version": "%VERSION%",
     "updated": "%TODAY%"
   },
+  "includes": [
+    {
+      "type": "dashboard",
+      "name": "Platform AI Observability",
+      "path": "provisioning/dashboards/platform-observability.json"
+    }
+  ],
   "dependencies": {
     "grafanaDependency": ">=12.3.0",
     "plugins": []
