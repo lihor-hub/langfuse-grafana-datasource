@@ -37,7 +37,7 @@ test('renders the provisioned platform dashboard through the real Grafana proxy'
   for (const [title, value] of panels) {
     const panel = dashboard.getPanelByTitle(title);
     await panel.scrollIntoView();
-    await expect(panel.data).toContainText([value]);
+    await expect(panel.locator.getByText(value, { exact: false }).first()).toBeVisible();
     await expect(panel.getErrorIcon()).not.toBeVisible();
   }
   for (const [title, fields] of [
@@ -49,7 +49,9 @@ test('renders the provisioned platform dashboard through the real Grafana proxy'
   ] as const) {
     const panel = dashboard.getPanelByTitle(title);
     await panel.scrollIntoView();
-    await expect(panel.fieldNames).toContainText([...fields]);
+    for (const field of fields) {
+      await expect(panel.locator.getByText(field, { exact: false }).first()).toBeVisible();
+    }
     await expect(panel.getErrorIcon()).not.toBeVisible();
   }
   for (const title of ['Model mix — cost, tokens and calls', 'Error observations by operation']) {
