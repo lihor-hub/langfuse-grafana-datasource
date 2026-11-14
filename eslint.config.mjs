@@ -1,5 +1,5 @@
 import { defineConfig } from 'eslint/config';
-import baseConfig from './.config/eslint.config.mjs';
+import grafanaConfig from '@grafana/eslint-config';
 
 export default defineConfig([
   {
@@ -35,5 +35,27 @@ export default defineConfig([
       '**/.eslintcache',
     ],
   },
-  ...baseConfig,
+  ...grafanaConfig,
+  {
+    rules: {
+      'react/prop-types': 'off',
+    },
+  },
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    languageOptions: {
+      parserOptions: {
+        project: './tsconfig.json',
+      },
+    },
+    rules: {
+      '@typescript-eslint/no-deprecated': 'warn',
+    },
+  },
+  {
+    files: ['./tests/**/*'],
+    rules: {
+      'react-hooks/rules-of-hooks': 'off',
+    },
+  },
 ]);
