@@ -103,7 +103,55 @@ async function handleRequest(request: IncomingMessage, response: ServerResponse)
         return;
       }
     }
-    sendJson(response, 200, { data: [{ count_count: 7 }] });
+    try {
+      const query = JSON.parse(url.searchParams.get('query') ?? '{}') as {
+        view: string;
+        metrics: Array<{ measure: string; aggregation: string }>;
+        dimensions?: Array<{ field: string }>;
+        timeDimension?: { granularity: string };
+        fromTimestamp: string;
+        toTimestamp: string;
+      };
+      if (
+        !['observations', 'scores-numeric', 'scores-categorical'].includes(query.view) ||
+        !query.metrics?.length ||
+        !Number.isFinite(Date.parse(query.fromTimestamp)) ||
+        !Number.isFinite(Date.parse(query.toTimestamp))
+      ) {
+        sendJson(response, 400, { error: 'invalid metrics query' });
+        return;
+      }
+      const samples = query.timeDimension ? [0, 1] : [0];
+      const data = samples.map((index) => {
+        const row: Record<string, unknown> = {};
+        if (query.timeDimension) {
+          const from = Date.parse(query.fromTimestamp);
+          row.time_dimension = new Date(from + (index * (Date.parse(query.toTimestamp) - from)) / 2).toISOString();
+        }
+        for (const { field } of query.dimensions ?? []) {
+          row[field] =
+            field === 'providedModelName' ? 'demo-model' : field === 'type' ? 'GENERATION' : 'demo-operation';
+        }
+        for (const { measure, aggregation } of query.metrics) {
+          row[`${aggregation}_${measure}`] =
+            measure === 'count'
+              ? 18 + index
+              : measure.endsWith('Cost')
+                ? 0.12 + index * 0.02
+                : measure.endsWith('Tokens')
+                  ? 120 + index * 20
+                  : measure === 'value'
+                    ? 0.8 + index * 0.1
+                    : aggregation === 'p95'
+                      ? 1250 + index * 100
+                      : 250 + index * 100;
+        }
+        return row;
+      });
+      sendJson(response, 200, { data });
+    } catch {
+      sendJson(response, 400, { error: 'invalid metrics query' });
+    }
     return;
   }
 

@@ -11,6 +11,12 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 - Open-source project policies, community health files, repository governance,
   and maintainer release documentation.
+- Platform AI observability dashboard with eleven aggregate data panels,
+  operator guidance, datasource selection and synthetic development provisioning.
+- Metrics v2 JSON query editor, bounded aggregate queries, time-series and table
+  frames, partial-error notices and request cancellation.
+- Dashboard interpretation/import guide, query/frame/component tests and a
+  provisioned-dashboard browser test.
 
 ### Changed
 

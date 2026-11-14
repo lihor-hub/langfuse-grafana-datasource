@@ -1,0 +1,265 @@
+{
+  "id": null,
+  "uid": "langfuse-platform-overview",
+  "title": "Platform AI Observability — Langfuse",
+  "description": "Understand instrumented AI workload volume, LLM latency, cost, token consumption, failures and evaluation scores. Not an infrastructure-health dashboard.",
+  "tags": ["langfuse", "ai", "observability"],
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": true,
+  "timezone": "browser",
+  "refresh": "5m",
+  "time": { "from": "now-7d", "to": "now" },
+  "templating": {
+    "list": [
+      {
+        "name": "langfuse",
+        "label": "Langfuse datasource",
+        "type": "datasource",
+        "query": "lihorhub-langfuse-datasource",
+        "refresh": 1,
+        "current": {}
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "text",
+      "title": "Start here: what this dashboard measures",
+      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 6 },
+      "options": {
+        "mode": "markdown",
+        "content": "## Your platform's AI workload, in one view\nSelect a **Langfuse datasource** and a **time range**. Start with seven days if recent traffic is sparse.\n\n- **Observations are spans/events/generations, not user requests.** One request may create many observations.\n- Cost, tokens and model latency below are filtered to **GENERATION** observations to avoid adding parent/child usage together. Missing instrumentation or pricing means incomplete totals.\n- **No data is not zero.** Scores appear only when your platform records evaluations; an empty quality chart does not mean success.\n- This is frontend-only observability: **no Grafana-managed alerting**. Pair the same time window with your platform's Prometheus/Loki dashboards for infrastructure diagnosis."
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Recorded observations",
+      "description": "All instrumented observations in the selected range. Not distinct requests, users or sessions.",
+      "gridPos": { "x": 0, "y": 6, "w": 6, "h": 4 },
+      "datasource": { "type": "lihorhub-langfuse-datasource", "uid": "${langfuse}" },
+      "targets": [
+        {
+          "refId": "A",
+          "kind": "metrics",
+          "metricsQuery": "{\"view\":\"observations\",\"metrics\":[{\"measure\":\"count\",\"aggregation\":\"count\"}],\"dimensions\":[],\"filters\":[],\"config\":{\"row_limit\":1000}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short", "noValue": "No data" }, "overrides": [] },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "colorMode": "none",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "LLM generations",
+      "description": "Count of GENERATION observations. Use this as the volume denominator for model work, not platform request traffic.",
+      "gridPos": { "x": 6, "y": 6, "w": 6, "h": 4 },
+      "datasource": { "type": "lihorhub-langfuse-datasource", "uid": "${langfuse}" },
+      "targets": [
+        {
+          "refId": "A",
+          "kind": "metrics",
+          "metricsQuery": "{\"view\":\"observations\",\"metrics\":[{\"measure\":\"count\",\"aggregation\":\"count\"}],\"dimensions\":[],\"filters\":[{\"type\":\"string\",\"column\":\"type\",\"operator\":\"=\",\"value\":\"GENERATION\"}],\"config\":{\"row_limit\":1000}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short", "noValue": "No data" }, "overrides": [] },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "colorMode": "none",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Recorded generation cost",
+      "description": "Sum of generation cost in USD over the entire selected range. Missing model pricing produces incomplete cost, not free usage.",
+      "gridPos": { "x": 12, "y": 6, "w": 6, "h": 4 },
+      "datasource": { "type": "lihorhub-langfuse-datasource", "uid": "${langfuse}" },
+      "targets": [
+        {
+          "refId": "A",
+          "kind": "metrics",
+          "metricsQuery": "{\"view\":\"observations\",\"metrics\":[{\"measure\":\"totalCost\",\"aggregation\":\"sum\"}],\"dimensions\":[],\"filters\":[{\"type\":\"string\",\"column\":\"type\",\"operator\":\"=\",\"value\":\"GENERATION\"}],\"config\":{\"row_limit\":1000}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "currencyUSD", "noValue": "No data" }, "overrides": [] },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "colorMode": "none",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Generation tokens",
+      "description": "Recorded total tokens on GENERATION observations. Only as complete as the SDK/provider usage reporting.",
+      "gridPos": { "x": 18, "y": 6, "w": 6, "h": 4 },
+      "datasource": { "type": "lihorhub-langfuse-datasource", "uid": "${langfuse}" },
+      "targets": [
+        {
+          "refId": "A",
+          "kind": "metrics",
+          "metricsQuery": "{\"view\":\"observations\",\"metrics\":[{\"measure\":\"totalTokens\",\"aggregation\":\"sum\"}],\"dimensions\":[],\"filters\":[{\"type\":\"string\",\"column\":\"type\",\"operator\":\"=\",\"value\":\"GENERATION\"}],\"config\":{\"row_limit\":1000}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short", "noValue": "No data" }, "overrides": [] },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "colorMode": "none",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Workload volume by observation type",
+      "description": "Compare generation traffic with spans, tools and agents. A change in observation mix can indicate a changed workflow or instrumentation, not necessarily more users.",
+      "gridPos": { "x": 0, "y": 10, "w": 12, "h": 8 },
+      "datasource": { "type": "lihorhub-langfuse-datasource", "uid": "${langfuse}" },
+      "targets": [
+        {
+          "refId": "A",
+          "kind": "metrics",
+          "metricsQuery": "{\"view\":\"observations\",\"metrics\":[{\"measure\":\"count\",\"aggregation\":\"count\"}],\"dimensions\":[{\"field\":\"type\"}],\"filters\":[],\"timeDimension\":{\"granularity\":\"auto\"},\"orderBy\":[{\"field\":\"time_dimension\",\"direction\":\"asc\"}],\"config\":{\"row_limit\":1000}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "short", "noValue": "No data", "custom": { "spanNulls": false } },
+        "overrides": []
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } }
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Model latency — median and p95",
+      "description": "GENERATION duration in milliseconds. p95 means 95% of measured generations completed within this duration. This is not end-to-end request latency. Never average percentile values across buckets.",
+      "gridPos": { "x": 12, "y": 10, "w": 12, "h": 8 },
+      "datasource": { "type": "lihorhub-langfuse-datasource", "uid": "${langfuse}" },
+      "targets": [
+        {
+          "refId": "A",
+          "kind": "metrics",
+          "metricsQuery": "{\"view\":\"observations\",\"metrics\":[{\"measure\":\"latency\",\"aggregation\":\"p50\"},{\"measure\":\"latency\",\"aggregation\":\"p95\"}],\"dimensions\":[],\"filters\":[{\"type\":\"string\",\"column\":\"type\",\"operator\":\"=\",\"value\":\"GENERATION\"}],\"timeDimension\":{\"granularity\":\"auto\"},\"orderBy\":[{\"field\":\"time_dimension\",\"direction\":\"asc\"}],\"config\":{\"row_limit\":1000}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "ms", "noValue": "No data", "custom": { "spanNulls": false } },
+        "overrides": []
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } }
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Recorded generation cost over time",
+      "description": "Cost per time bucket, not a cumulative total. Compare with generation volume and model mix to distinguish more traffic from more expensive calls.",
+      "gridPos": { "x": 0, "y": 18, "w": 12, "h": 8 },
+      "datasource": { "type": "lihorhub-langfuse-datasource", "uid": "${langfuse}" },
+      "targets": [
+        {
+          "refId": "A",
+          "kind": "metrics",
+          "metricsQuery": "{\"view\":\"observations\",\"metrics\":[{\"measure\":\"totalCost\",\"aggregation\":\"sum\"}],\"dimensions\":[],\"filters\":[{\"type\":\"string\",\"column\":\"type\",\"operator\":\"=\",\"value\":\"GENERATION\"}],\"timeDimension\":{\"granularity\":\"auto\"},\"orderBy\":[{\"field\":\"time_dimension\",\"direction\":\"asc\"}],\"config\":{\"row_limit\":1000}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "currencyUSD", "noValue": "No data", "custom": { "spanNulls": false } },
+        "overrides": []
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } }
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Input vs output tokens",
+      "description": "GENERATION input and output tokens per bucket. Rising input with stable call volume suggests larger prompts/context; rising output suggests longer responses or changed workload. These are investigation clues, not causal proof.",
+      "gridPos": { "x": 12, "y": 18, "w": 12, "h": 8 },
+      "datasource": { "type": "lihorhub-langfuse-datasource", "uid": "${langfuse}" },
+      "targets": [
+        {
+          "refId": "A",
+          "kind": "metrics",
+          "metricsQuery": "{\"view\":\"observations\",\"metrics\":[{\"measure\":\"inputTokens\",\"aggregation\":\"sum\"},{\"measure\":\"outputTokens\",\"aggregation\":\"sum\"}],\"dimensions\":[],\"filters\":[{\"type\":\"string\",\"column\":\"type\",\"operator\":\"=\",\"value\":\"GENERATION\"}],\"timeDimension\":{\"granularity\":\"auto\"},\"orderBy\":[{\"field\":\"time_dimension\",\"direction\":\"asc\"}],\"config\":{\"row_limit\":1000}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "short", "noValue": "No data", "custom": { "spanNulls": false } },
+        "overrides": []
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } }
+    },
+    {
+      "id": 10,
+      "type": "table",
+      "title": "Model mix — cost, tokens and calls",
+      "description": "Top 20 generation model names by recorded cost. Compare calls and tokens before assuming an expensive model is inefficient. A row-limit notice means this table is not exhaustive.",
+      "gridPos": { "x": 0, "y": 26, "w": 12, "h": 8 },
+      "datasource": { "type": "lihorhub-langfuse-datasource", "uid": "${langfuse}" },
+      "targets": [
+        {
+          "refId": "A",
+          "kind": "metrics",
+          "metricsQuery": "{\"view\":\"observations\",\"metrics\":[{\"measure\":\"totalCost\",\"aggregation\":\"sum\"},{\"measure\":\"totalTokens\",\"aggregation\":\"sum\"},{\"measure\":\"count\",\"aggregation\":\"count\"}],\"dimensions\":[{\"field\":\"providedModelName\"}],\"filters\":[{\"type\":\"string\",\"column\":\"type\",\"operator\":\"=\",\"value\":\"GENERATION\"}],\"orderBy\":[{\"field\":\"sum_totalCost\",\"direction\":\"desc\"}],\"config\":{\"row_limit\":20}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "noValue": "No data" }, "overrides": [] },
+      "options": { "showHeader": true }
+    },
+    {
+      "id": 11,
+      "type": "table",
+      "title": "Error observations by operation",
+      "description": "Top 20 observation names marked ERROR. This counts error observations, not failed requests or an error rate. Continue the investigation in Langfuse for individual traces and payloads.",
+      "gridPos": { "x": 12, "y": 26, "w": 12, "h": 8 },
+      "datasource": { "type": "lihorhub-langfuse-datasource", "uid": "${langfuse}" },
+      "targets": [
+        {
+          "refId": "A",
+          "kind": "metrics",
+          "metricsQuery": "{\"view\":\"observations\",\"metrics\":[{\"measure\":\"count\",\"aggregation\":\"count\"}],\"dimensions\":[{\"field\":\"name\"}],\"filters\":[{\"type\":\"string\",\"column\":\"level\",\"operator\":\"=\",\"value\":\"ERROR\"}],\"orderBy\":[{\"field\":\"count_count\",\"direction\":\"desc\"}],\"config\":{\"row_limit\":20}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "noValue": "No data" }, "overrides": [] },
+      "options": { "showHeader": true }
+    },
+    {
+      "id": 12,
+      "type": "timeseries",
+      "title": "Numeric evaluation scores by name",
+      "description": "Average recorded NUMERIC scores per name and time bucket. Each score has its own scale and direction; do not compare unrelated series or assume higher is better. Empty means no matching evaluations, not perfect quality.",
+      "gridPos": { "x": 0, "y": 34, "w": 12, "h": 8 },
+      "datasource": { "type": "lihorhub-langfuse-datasource", "uid": "${langfuse}" },
+      "targets": [
+        {
+          "refId": "A",
+          "kind": "metrics",
+          "metricsQuery": "{\"view\":\"scores-numeric\",\"metrics\":[{\"measure\":\"value\",\"aggregation\":\"avg\"}],\"dimensions\":[{\"field\":\"name\"}],\"filters\":[{\"type\":\"string\",\"column\":\"dataType\",\"operator\":\"=\",\"value\":\"NUMERIC\"}],\"timeDimension\":{\"granularity\":\"auto\"},\"orderBy\":[{\"field\":\"time_dimension\",\"direction\":\"asc\"}],\"config\":{\"row_limit\":1000}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "short", "noValue": "No data", "custom": { "spanNulls": false } },
+        "overrides": []
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } }
+    },
+    {
+      "id": 13,
+      "type": "text",
+      "title": "How to investigate a change",
+      "gridPos": { "x": 12, "y": 34, "w": 12, "h": 8 },
+      "options": {
+        "mode": "markdown",
+        "content": "### A practical operator workflow\n1. **Traffic changed?** Compare observation types and generation count. Check instrumentation changes before calling it a demand spike.\n2. **Latency increased?** Narrow the time range; compare tokens and the model table. Inspect slow generations and their parent traces in Langfuse.\n3. **Cost increased?** Compare call volume, token usage and model mix. Missing pricing or usage must be fixed at instrumentation/model configuration, not hidden with zeros.\n4. **Errors increased?** Start with the operation table, then inspect matching Langfuse traces. Check infrastructure dashboards for the same window.\n5. **Quality changed?** Read the evaluator's definition, scale, sample size and coverage before drawing conclusions from an average.\n\nEdit any panel's **Metrics v2 JSON** to add an environment/name filter or change grouping. No raw prompts, outputs or credentials are stored in this dashboard."
+      }
+    }
+  ]
+}

@@ -14,6 +14,20 @@ by the Grafana data proxy; the browser plugin receives only the proxy URL.
 - Langfuse v4
 - Node.js 22.22.2 or newer within the 22.x release line for development
 
+## Platform observability dashboard
+
+The [example dashboard](provisioning/dashboards/platform-observability.json)
+shows observation volume, generation count, model latency, cost, tokens,
+model mix, error counts and numeric evaluation trends. Operator explanations
+are included inside Grafana. The development stack provisions it with synthetic
+data in the **Langfuse** folder.
+
+Read the [dashboard guide](docs/platform-observability-dashboard.md) for import
+instructions, interpretation, query examples and limitations. This slice adds
+bounded Metrics v2 queries with a JSON editor, time-series/table frames, safe
+errors and cancellation. Individual observation/score browsing, logs, histogram
+output and guided builders are not implemented yet.
+
 ## Development
 
 ```bash
