@@ -82,6 +82,23 @@ it('supports the active canonical query, preserves inactive drafts and forwards 
   expect(() => interpolateQuery({ refId: 'A', metricsQuery: '{invalid' }, {})).toThrow(/JSON/);
 });
 
+it('coerces numeric object-key observation filter variables and safely rejects invalid values', () => {
+  const definition = {
+    filters: [{ type: 'numberObject', column: 'metadata', key: 'attempts', operator: '>=', value: '$minimum' }],
+  };
+  const target = { refId: 'A', kind: 'observations' as const, observationsQuery: JSON.stringify(definition) };
+  const result = interpolateQuery(target, { minimum: { value: '2.5' } });
+  expect(JSON.parse(result.observationsQuery!)).toEqual({
+    filters: [{ type: 'numberObject', column: 'metadata', key: 'attempts', operator: '>=', value: 2.5 }],
+  });
+  expect(target.observationsQuery).toBe(JSON.stringify(definition));
+  for (const value of ['', 'not-a-number-private-value', 'Infinity', '1e999', true]) {
+    expect(() => interpolateQuery(target, { minimum: { value } })).toThrow(
+      'Numeric query fields require a finite numeric value.'
+    );
+  }
+});
+
 it('rejects non-finite JSON numbers rather than converting them to null', () => {
   expect(() => interpolateQuery({ refId: 'A', metricsQuery: '{"limit":1e999}' }, {})).toThrow(/finite/);
 });

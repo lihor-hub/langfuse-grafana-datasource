@@ -123,7 +123,7 @@ export function interpolateQuery(target: LangfuseQuery, scopedVars: ScopedVars):
             interpolated = [interpolated];
           }
           function typed(item: unknown): unknown {
-            if (object.type === 'number') {
+            if (object.type === 'number' || object.type === 'numberObject') {
               return finiteNumber(item);
             }
             if (object.type === 'boolean') {
