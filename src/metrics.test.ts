@@ -105,6 +105,118 @@ it('preserves dimension-first tables, multiple measures and latency milliseconds
   expect(frame.fields[1].config.unit).toBe('ms');
 });
 
+it('preserves extra response columns in deterministic table order', () => {
+  const query = buildMetricsQuery(
+    {
+      refId: 'A',
+      metricsQuery: JSON.stringify({
+        view: 'observations',
+        metrics: [{ measure: 'count', aggregation: 'count' }],
+        dimensions: [{ field: 'name' }],
+      }),
+    },
+    range,
+    60000
+  );
+  const [frame] = metricsToFrames([{ name: 'synthetic', count_count: 2, z: { nested: true }, a: false }], query, 'A');
+  expect(frame.fields.map((field) => field.name)).toEqual(['name', 'count_count', 'a', 'z']);
+  expect(frame.fields[3].values).toEqual([{ nested: true }]);
+});
+
+it('preserves native number, boolean and array dimensions in tables', () => {
+  const query = buildMetricsQuery(
+    {
+      refId: 'A',
+      metricsQuery: JSON.stringify({
+        view: 'observations',
+        metrics: [{ measure: 'count', aggregation: 'count' }],
+        dimensions: [{ field: 'promptVersion' }, { field: 'isRootObservation' }, { field: 'tags' }],
+      }),
+    },
+    range,
+    60000
+  );
+  const [frame] = metricsToFrames(
+    [{ promptVersion: 2, isRootObservation: true, tags: ['synthetic', 'demo'], count_count: 1 }],
+    query,
+    'A'
+  );
+  expect(frame.fields.slice(0, 3).map((field) => field.type)).toEqual([
+    FieldType.number,
+    FieldType.boolean,
+    FieldType.other,
+  ]);
+  expect(frame.fields.slice(0, 3).map((field) => field.values[0])).toEqual([2, true, ['synthetic', 'demo']]);
+});
+
+it('orders an unexpected time column before metrics in table output', () => {
+  const query = buildMetricsQuery(
+    {
+      refId: 'A',
+      metricsQuery: JSON.stringify({
+        view: 'scores-categorical',
+        metrics: [{ measure: 'count', aggregation: 'count' }],
+        dimensions: [{ field: 'stringValue' }],
+        orderBy: [{ field: 'count_count', direction: 'desc' }],
+      }),
+    },
+    range,
+    60000
+  );
+  const [frame] = metricsToFrames([{ stringValue: 'pass', time_dimension: '2026-11-01', count_count: 4 }], query, 'A');
+  expect(frame.fields.map((field) => field.name)).toEqual(['stringValue', 'time_dimension', 'count_count']);
+});
+
+it('uses percentunit only for boolean averages, including per-series dataType labels', () => {
+  const query = buildMetricsQuery(
+    {
+      refId: 'A',
+      metricsQuery: JSON.stringify({
+        view: 'scores-numeric',
+        metrics: [{ measure: 'value', aggregation: 'avg' }],
+        dimensions: [{ field: 'dataType' }],
+        timeDimension: { granularity: 'hour' },
+      }),
+    },
+    range,
+    60000
+  );
+  const frames = metricsToFrames(
+    [
+      { dataType: 'BOOLEAN', time_dimension: '2026-11-01T00:00:00Z', avg_value: 0.75 },
+      { dataType: 'NUMERIC', time_dimension: '2026-11-01T00:00:00Z', avg_value: 3 },
+    ],
+    query,
+    'A'
+  );
+  expect(frames[0].fields[1].config.unit).toBe('percentunit');
+  expect(frames[1].fields[1].config.unit).toBe('short');
+  const filtered = {
+    ...query,
+    dimensions: [],
+    filters: [{ column: 'dataType', type: 'string', operator: '=', value: 'BOOLEAN' }],
+  };
+  expect(metricsToFrames([], filtered, 'A')[0].fields[1].config.unit).toBe('percentunit');
+});
+
+it('uses throughput units and count units for numeric count/uniq aggregations', () => {
+  const query = buildMetricsQuery(
+    {
+      refId: 'A',
+      metricsQuery: JSON.stringify({
+        view: 'observations',
+        metrics: [
+          { measure: 'outputTokensPerSecond', aggregation: 'avg' },
+          { measure: 'latency', aggregation: 'uniq' },
+        ],
+      }),
+    },
+    range,
+    60000
+  );
+  expect(metricsToFrames([], query, 'A')[0].fields.map((field) => field.config.unit)).toEqual(['cps', 'short']);
+});
+
 it('rejects malformed rows, timestamps and nonnumeric metrics', () => {
   const query = buildMetricsQuery({ refId: 'A' }, range, 60_000);
   expect(() => metricsToFrames([{ time_dimension: 'not-a-date', count_count: 3 }], query, 'A')).toThrow('incompatible');
