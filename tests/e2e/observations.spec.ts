@@ -72,6 +72,7 @@ for (const empty of [false, true]) {
 
 test('Explore defaults observations to logs and supports body and table switching', async ({
   page,
+  explorePage,
   readProvisionedDataSource,
 }) => {
   const datasource = await readProvisionedDataSource({ fileName: 'datasources.yml' });
@@ -90,14 +91,13 @@ test('Explore defaults observations to logs and supports body and table switchin
     },
   };
   await page.goto(`/explore?schemaVersion=1&panes=${encodeURIComponent(JSON.stringify(panes))}&orgId=1`);
-  await expect(page.getByRole('button', { name: 'Logs', exact: true }).first()).toHaveAttribute('aria-pressed', 'true');
+  // Explore also renders Logs/Table outline buttons; never select format controls page-wide.
+  const editor = explorePage.getQueryEditorRow('A');
+  await expect(editor.getByRole('button', { name: 'Logs', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await expect(page.getByText('Synthetic output', { exact: false }).first()).toBeVisible();
-  await page.getByRole('button', { name: 'Table', exact: true }).first().click();
-  await expect(page.getByRole('button', { name: 'Table', exact: true }).first()).toHaveAttribute(
-    'aria-pressed',
-    'true'
-  );
-  await page.getByRole('button', { name: 'Advanced JSON', exact: true }).click();
-  const definition = JSON.parse(await page.getByRole('textbox', { name: 'Observation query (JSON)' }).inputValue());
+  await editor.getByRole('button', { name: 'Table', exact: true }).click();
+  await expect(editor.getByRole('button', { name: 'Table', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await editor.getByRole('button', { name: 'Advanced JSON', exact: true }).click();
+  const definition = JSON.parse(await editor.getByRole('textbox', { name: 'Observation query (JSON)' }).inputValue());
   expect(definition).toMatchObject({ format: 'table', logBody: 'output', fieldGroups: ['basic', 'io'], ceiling: 3 });
 });
