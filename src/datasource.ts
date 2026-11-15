@@ -1,18 +1,28 @@
 import {
+  CoreApp,
   DataSourceApi,
   type DataFrame,
   type DataQueryRequest,
   type DataQueryResponse,
   type DataSourceInstanceSettings,
+  type MetricFindValue,
+  type LegacyMetricFindQueryOptions,
   type TestDataSourceResponse,
 } from '@grafana/data';
-
 import { Observable } from 'rxjs';
 
 import type { LangfuseObservabilityClient } from './client/types';
-import { connectionErrorMessage, LangfuseClientError } from './client/errors';
+import { connectionErrorMessage, LangfuseClientError, queryErrorMessage } from './client/errors';
 import { buildMetricsQuery, DEFAULT_METRICS_QUERY, metricsToFrames } from './metrics';
 import { createObservabilityClient } from './client/createClient';
+import {
+  buildObservationRequest,
+  DEFAULT_OBSERVATIONS_QUERY,
+  parseObservationQuery,
+  runObservationQuery,
+} from './queries/observations';
+import { buildScoreRequest, runScoreQuery } from './queries/scores';
+import { createDiscoveryQueryRunner, interpolateQuery, type DiscoveryQuery } from './variables';
 import type { LangfuseDataSourceOptions, LangfuseQuery } from './types';
 
 type ClientFactory = (
@@ -21,7 +31,9 @@ type ClientFactory = (
 
 export class DataSource extends DataSourceApi<LangfuseQuery, LangfuseDataSourceOptions> {
   private readonly proxyUrl?: string;
+  private readonly uiUrl?: string;
   private readonly client: LangfuseObservabilityClient;
+  private readonly discover: ReturnType<typeof createDiscoveryQueryRunner>;
 
   constructor(
     instanceSettings: DataSourceInstanceSettings<LangfuseDataSourceOptions>,
@@ -29,50 +41,78 @@ export class DataSource extends DataSourceApi<LangfuseQuery, LangfuseDataSourceO
   ) {
     super(instanceSettings);
     this.proxyUrl = instanceSettings.url;
+    this.uiUrl = instanceSettings.jsonData.langfuseUiUrl;
     this.client = clientFactory(instanceSettings);
+    this.discover = createDiscoveryQueryRunner(this.client);
   }
 
-  getDefaultQuery(): Partial<LangfuseQuery> {
-    return { kind: 'metrics', metricsQuery: DEFAULT_METRICS_QUERY };
+  getDefaultQuery(app = CoreApp.Dashboard): Partial<LangfuseQuery> {
+    return app === CoreApp.Explore
+      ? {
+          kind: 'observations',
+          observationsQuery: JSON.stringify({ ...JSON.parse(DEFAULT_OBSERVATIONS_QUERY), format: 'logs' }, null, 2),
+        }
+      : { kind: 'metrics', metricsQuery: DEFAULT_METRICS_QUERY };
+  }
+
+  metricFindQuery(
+    query: DiscoveryQuery,
+    options?: LegacyMetricFindQueryOptions & { signal?: AbortSignal }
+  ): Promise<MetricFindValue[]> {
+    return this.discover(query, options);
   }
 
   query(request: DataQueryRequest<LangfuseQuery>): Observable<DataQueryResponse> {
     return new Observable((subscriber) => {
       const controller = new AbortController();
       const targets = request.targets.filter((target) => !target.hide);
-      const data: DataFrame[] = [];
+      const results: DataFrame[][] = [];
       const failures: string[] = [];
       let next = 0;
       const worker = async () => {
         while (next < targets.length && !controller.signal.aborted) {
-          const target = targets[next++];
-          let query;
+          const index = next++;
+          const original = targets[index];
+          let run: () => Promise<DataFrame[]>;
           try {
-            query = buildMetricsQuery(target, request.range, request.intervalMs);
-          } catch (error) {
-            failures.push(`${target.refId}: ${(error as Error).message}`);
-            continue;
-          }
-          let response;
-          try {
-            response = await this.client.queryMetrics({ query: JSON.stringify(query) }, controller.signal);
-          } catch (error) {
-            const status = error instanceof LangfuseClientError ? error.status : undefined;
-            const message =
-              status === 401 || status === 403
-                ? 'Check Langfuse credentials and permissions.'
-                : status === 429
-                  ? 'Langfuse rate limit reached; retry later.'
-                  : status === 400
-                    ? 'Langfuse rejected the metrics query; check supported fields and filters.'
-                    : 'Langfuse metrics request failed. Check connectivity and datasource configuration.';
-            failures.push(`${target.refId}: ${message}`);
-            continue;
-          }
-          try {
-            data.push(...metricsToFrames(response?.data, query, target.refId));
+            const target = interpolateQuery(original, request.scopedVars ?? {});
+            switch (target.kind) {
+              case 'observations':
+                buildObservationRequest(parseObservationQuery(target.observationsQuery), request);
+                run = () => runObservationQuery(this.client, target, request, controller.signal, this.uiUrl);
+                break;
+              case 'scores':
+                buildScoreRequest(target, request.range);
+                run = () => runScoreQuery(this.client, target, request, controller.signal);
+                break;
+              case undefined:
+              case 'metrics': {
+                const definition = buildMetricsQuery(target, request.range, request.intervalMs);
+                run = async () => {
+                  const response = await this.client.queryMetrics(
+                    { query: JSON.stringify(definition) },
+                    controller.signal
+                  );
+                  try {
+                    return metricsToFrames(response?.data, definition, target.refId);
+                  } catch {
+                    throw new LangfuseClientError('malformed-response', 'Incompatible metrics response.');
+                  }
+                };
+                break;
+              }
+              default:
+                throw new Error('Unsupported query kind.');
+            }
           } catch {
-            failures.push(`${target.refId}: Langfuse returned an incompatible metrics response.`);
+            failures[index] =
+              `${original.refId}: ${queryErrorMessage(new LangfuseClientError('invalid-query', 'Invalid query definition.'))}`;
+            continue;
+          }
+          try {
+            results[index] = await run();
+          } catch (error) {
+            failures[index] = `${original.refId}: ${queryErrorMessage(error)}`;
           }
         }
       };
@@ -80,15 +120,17 @@ export class DataSource extends DataSourceApi<LangfuseQuery, LangfuseDataSourceO
         if (subscriber.closed) {
           return;
         }
-        if (failures.length && data.length === 0) {
-          subscriber.error(new Error(failures.join(' ')));
+        const data = results.flat();
+        const errors = failures.filter(Boolean);
+        if (errors.length && data.length === 0) {
+          subscriber.error(new Error(errors.join(' ')));
           return;
         }
-        if (failures.length) {
+        if (errors.length) {
           for (const frame of data) {
             frame.meta = {
               ...frame.meta,
-              notices: [...(frame.meta?.notices ?? []), { severity: 'warning', text: failures.join(' ') }],
+              notices: [...(frame.meta?.notices ?? []), { severity: 'warning', text: errors.join(' ') }],
             };
           }
         }

@@ -27,9 +27,13 @@ const filters = [
 export function ScoreQueryEditor({
   query,
   validationQuery,
+  validationError,
   onChange,
   onRunQuery,
-}: QueryEditorProps<DataSource, LangfuseQuery, LangfuseDataSourceOptions> & { validationQuery?: LangfuseQuery }) {
+}: QueryEditorProps<DataSource, LangfuseQuery, LangfuseDataSourceOptions> & {
+  validationQuery?: LangfuseQuery;
+  validationError?: string;
+}) {
   const text = query.scoresQuery ?? DEFAULT_SCORES_QUERY;
   let definition: ScoreQuery | undefined;
   let error: string | undefined;
@@ -42,6 +46,7 @@ export function ScoreQueryEditor({
   } catch (cause) {
     error = cause instanceof SyntaxError ? 'Invalid score query: enter a JSON object.' : (cause as Error).message;
   }
+  error = validationError ?? error;
   const advanced = query.editorMode === 'advanced' || !definition;
   const selectedGroups =
     typeof definition?.fields === 'string' ? definition.fields.split(',').map((group) => group.trim()) : [];
