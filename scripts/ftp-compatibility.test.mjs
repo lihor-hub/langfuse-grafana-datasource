@@ -8,15 +8,27 @@ async function fixture(transferHost) {
   const sockets = new Set();
   const connections = { control: 0, advertised: 0 };
   const commands = [];
+  const unexpectedErrors = [];
+  let payloadSent = false;
+  let closing = false;
   let dataSocket;
   let payload;
+  function trackSocket(socket) {
+    sockets.add(socket);
+    socket.on('error', (error) => {
+      // The client may reset its control socket after receiving the completed transfer.
+      if (error.code !== 'ECONNRESET' || (!payloadSent && !closing)) {
+        unexpectedErrors.push(error);
+      }
+    });
+    socket.on('close', () => sockets.delete(socket));
+  }
   function acceptData(host) {
     return (socket) => {
       connections[host]++;
       dataSocket = socket;
       payload = host === 'control' ? 'synthetic-loopback-payload' : 'untrusted-advertised-payload';
-      sockets.add(socket);
-      socket.on('close', () => sockets.delete(socket));
+      trackSocket(socket);
     };
   }
   const data = createServer(acceptData('control'));
@@ -29,8 +41,7 @@ async function fixture(transferHost) {
     await once(alternate, 'listening');
   }
   const control = createServer((socket) => {
-    sockets.add(socket);
-    socket.on('close', () => sockets.delete(socket));
+    trackSocket(socket);
     socket.write('220 Synthetic loopback FTP ready\r\n');
     let pending = '';
     socket.on('data', (chunk) => {
@@ -70,8 +81,10 @@ async function fixture(transferHost) {
           case 'RETR':
             socket.write('150 Opening data connection\r\n');
             assert(dataSocket, 'FTP client must establish the data connection before RETR');
-            dataSocket.end(payload);
-            socket.write('226 Transfer complete\r\n');
+            dataSocket.end(payload, () => {
+              payloadSent = true;
+              socket.write('226 Transfer complete\r\n');
+            });
             break;
           case 'QUIT':
             socket.end('221 Goodbye\r\n');
@@ -89,14 +102,18 @@ async function fixture(transferHost) {
     commands,
     connections,
     async close() {
+      closing = true;
+      const socketClosures = [...sockets].map((socket) => new Promise((resolve) => socket.once('close', resolve)));
       for (const socket of sockets) {
         socket.destroy();
       }
       await Promise.all([
+        ...socketClosures,
         new Promise((resolve) => control.close(resolve)),
         new Promise((resolve) => data.close(resolve)),
         ...(alternate ? [new Promise((resolve) => alternate.close(resolve))] : []),
       ]);
+      assert.deepEqual(unexpectedErrors, [], 'unexpected FTP fixture socket errors');
     },
   };
 }
