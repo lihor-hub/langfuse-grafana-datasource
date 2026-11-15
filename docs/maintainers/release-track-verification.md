@@ -34,6 +34,25 @@ diff if a fix is selected, and test the exact candidate again. The numbers above
 are time-specific, not a future release waiver. Parent decides whether the
 remaining findings block promotion.
 
+## Subsequent bounded security remediation
+
+The 52-finding audit and 18,226-byte bundle above describe the initial isolated
+release track only. A separately authorized follow-up starts from integrated
+commit `b522af7`: compatible transitive updates, the approved Markdown-lint
+0.24.1 direct dev-tool update, and the supported react-use 17.6.1 caller patch
+reduce npm audit to **36 findings: 7 high, 23 moderate, 6 low**. No overrides,
+Grafana/React/SDK direct version changes, Node-floor changes or forced FTP major
+were applied. See [dependency remediation](dependency-remediation.md) for exact
+versions, root chains, API usage, checks and remaining source-scan gates.
+
+All remaining npm high chains lead to basic-ftp 5 through signing/link-check
+proxy tooling. Latest get-uri still requires FTP 5; forcing FTP 6 would cross
+the caller's declared range. Parent must rerun the exact-source official
+validator; a skipped source scan or wrong default-branch archive is not a pass.
+The follow-up does **not** waive the remaining high findings or declare the
+candidate safe to release. Integrated bundle before/after is 85,816 bytes raw,
+22,018 gzip, with only grafana-public-path.js from node_modules reachable.
+
 ## Confirmed signing-gate fix
 
 Ordinary CI previously inherited `GRAFANA_ACCESS_POLICY_TOKEN` and signed a
