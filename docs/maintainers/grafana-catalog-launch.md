@@ -51,16 +51,16 @@ Grafana Labs or Langfuse.
 
 The verified `src/plugin.json` should contain:
 
-| Field | Prepared value or rule |
-| --- | --- |
-| Plugin ID | `lihorhub-langfuse-datasource` |
-| Name | `Langfuse` |
-| Description | `Explore Langfuse metrics, observations, and scores in Grafana.` |
-| Keywords | `langfuse`, `observability`, `llm`, `monitoring`, `traces`, `metrics`, `scores`, `data-source` |
-| Grafana dependency | The tested minimum version, planned as `>=12.3.0` |
-| Logos | Light and dark SVG assets legible at catalog-card size |
-| Links | Documentation, repository, issues, Apache-2.0 license |
-| Screenshots | Three to five verified images with concise descriptive captions |
+| Field              | Prepared value or rule                                                                         |
+| ------------------ | ---------------------------------------------------------------------------------------------- |
+| Plugin ID          | `lihorhub-langfuse-datasource`                                                                 |
+| Name               | `Langfuse`                                                                                     |
+| Description        | `Explore Langfuse metrics, observations, and scores in Grafana.`                               |
+| Keywords           | `langfuse`, `observability`, `llm`, `monitoring`, `traces`, `metrics`, `scores`, `data-source` |
+| Grafana dependency | The tested minimum version, planned as `>=12.3.0`                                              |
+| Logos              | Light and dark SVG assets legible at catalog-card size                                         |
+| Links              | Documentation, repository, issues, Apache-2.0 license                                          |
+| Screenshots        | Three to five verified images with concise descriptive captions                                |
 
 Grafana uses the `info.keywords`, `info.logos`, `info.screenshots`, and
 `info.links` metadata in discovery and the catalog detail page. Keep each value
@@ -71,7 +71,13 @@ the support and governance model is stable.
 
 ## Visual asset plan
 
-Create assets only from the verified release candidate with synthetic data.
+The current metadata includes three prior synthetic CI screenshots of the
+baseline aggregate Platform AI Observability dashboard. They are not fresh
+evidence of the concurrent observations/logs, scores or variables tracks. Their
+provenance is recorded in [release-track verification](release-track-verification.md).
+Never use private Minikube images as catalog assets.
+
+For new assets, use only a verified release candidate with synthetic data.
 Use consistent dimensions, a clean Grafana theme, readable labels, and no
 cropped menus or browser chrome that distract from the plugin.
 
