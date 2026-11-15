@@ -113,6 +113,17 @@ test('guided numeric controls store native JSON numbers, including decimal bound
   expect(screen.getByRole('spinbutton', { name: 'Numeric lower bound' })).toHaveValue(0.25);
 });
 
+test.each(['{"name":{"toString":null}}', '{"fields":["details"]}'])(
+  'preserves non-scalar score properties as editable JSON without rendering unsafe controls: %s',
+  (scoresQuery) => {
+    const { onRunQuery } = setup({ refId: 'A', kind: 'scores', scoresQuery });
+    expect(screen.getByRole('textbox', { name: 'Scores v3 query (JSON)' })).toHaveValue(scoresQuery);
+    expect(screen.getByRole('button', { name: 'Guided' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Run score query' })).toBeDisabled();
+    expect(onRunQuery).not.toHaveBeenCalled();
+  }
+);
+
 test('guided validation prevents conflicting subjects and incorrect numeric bounds', () => {
   setup();
   fireEvent.change(screen.getByRole('textbox', { name: 'Observation IDs' }), { target: { value: 'observation-1' } });

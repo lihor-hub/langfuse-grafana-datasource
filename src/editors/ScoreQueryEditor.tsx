@@ -39,7 +39,12 @@ export function ScoreQueryEditor({
   let error: string | undefined;
   try {
     const parsed = JSON.parse(text);
-    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+    if (
+      parsed &&
+      typeof parsed === 'object' &&
+      !Array.isArray(parsed) &&
+      Object.values(parsed).every((value) => value == null || ['string', 'number', 'boolean'].includes(typeof value))
+    ) {
       definition = parsed;
     }
     parseScoreQuery((validationQuery ?? query).scoresQuery);

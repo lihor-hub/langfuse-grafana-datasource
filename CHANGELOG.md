@@ -42,3 +42,8 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Ordinary CI and release-candidate automation remain unsigned and cannot
   publish a GitHub release or submit to the catalog merely because a signing
   token exists.
+
+### Fixed
+
+- Preserve malformed advanced query members as editable JSON instead of
+  rendering unsafe guided controls and crashing the metrics or score editor.
