@@ -49,3 +49,5 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   rendering unsafe guided controls and crashing the metrics or score editor.
 - Limit Playwright discovery to browser specs so Node fixture and real-host
   smoke suites run only through their explicit commands.
+- Reject metric responses exceeding the requested row limit instead of
+  trusting the upstream server to enforce the plugin's result bounds.
