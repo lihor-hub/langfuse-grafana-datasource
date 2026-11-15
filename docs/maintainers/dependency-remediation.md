@@ -209,3 +209,23 @@ releases compatibly**. Update through those supported caller ranges, retain the
 loopback tests, then rerun clean install, link/tool checks, npm audit and the
 exact-source official validator before removing the exception. Do not relax
 transfer-host validation to make an unsupported remote FTP setup work.
+
+## Integration verification
+
+After a fresh integration install, all 408 Jest tests, 9 fixture tests and
+5 release-tool tests pass, along with types, lint, formatting, repository,
+Markdown, link, secret, build and local archive checks. The FTP subprocess
+checks wait for `close`, so stdout/stderr are fully drained before assertions.
+
+The integrator reran official Grafana plugin validator 0.53.6 against the
+packaged plugin and an exact committed source ZIP. Self-checks confirmed the
+ZIP was fetched and its lockfile was actually scanned. There are no source-map
+mismatches or high-severity OSV findings. The remaining results are the expected
+unsigned-plugin warning and the unregistered `lihorhub` publisher warning/error
+(`organization not found`). This is not an overall passing catalog validation
+or permission to sign/publish. The 23 moderate and 6 low npm findings remain.
+
+Browser compatibility results belong to the PR's real Grafana matrix; local
+checks and source-aware validation do not replace browser or clean-install
+acceptance. The existing Minikube installation has not been replaced by this
+integrated feature branch.
