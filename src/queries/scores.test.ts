@@ -136,6 +136,19 @@ test('repeated cursors are rejected rather than looping', async () => {
   expect(list).toHaveBeenCalledTimes(2);
 });
 
+test.each([
+  ['malformed page', {}],
+  ['non-progressing page', { data: [], meta: { limit: 100, cursor: 'next' } }],
+  ['repeated cursor', { data: [score()], meta: { limit: 100, cursor: 'same' } }],
+])('classifies %s as a safe malformed-response error', async (_scenario, page) => {
+  const list = jest.fn().mockResolvedValue(page);
+  await expect(runScoreQuery(clientWith(list), target(), request, new AbortController().signal)).rejects.toMatchObject({
+    name: 'LangfuseClientError',
+    kind: 'malformed-response',
+    message: 'Incompatible Scores v3 response or repeated pagination cursor.',
+  });
+});
+
 test('cancellation before and between pages stops dispatch', async () => {
   const controller = new AbortController();
   const list = jest.fn().mockImplementation(async () => {

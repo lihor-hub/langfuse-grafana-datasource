@@ -52,9 +52,9 @@ it('follows cursors sequentially, bounds each page, and reports ceiling truncati
 });
 it('rejects repeated cursors and malformed responses without leaking payloads', async () => {
   listObservations.mockResolvedValue({ data: [row], meta: { cursor: 'same' } });
-  await expect(runObservationQuery(client, { refId: 'A' }, request, new AbortController().signal)).rejects.toThrow(
-    /cursor/i
-  );
+  await expect(
+    runObservationQuery(client, { refId: 'A' }, request, new AbortController().signal)
+  ).rejects.toMatchObject({ name: 'LangfuseClientError', kind: 'malformed-response' });
   for (const page of [
     {},
     { data: [null], meta: {} },
@@ -62,9 +62,9 @@ it('rejects repeated cursors and malformed responses without leaking payloads', 
     { data: [], meta: { cursor: 3 } },
   ]) {
     listObservations.mockResolvedValue(page);
-    await expect(runObservationQuery(client, { refId: 'A' }, request, new AbortController().signal)).rejects.toThrow(
-      /incompatible/i
-    );
+    await expect(
+      runObservationQuery(client, { refId: 'A' }, request, new AbortController().signal)
+    ).rejects.toMatchObject({ name: 'LangfuseClientError', kind: 'malformed-response' });
   }
 });
 it('stops on cancellation, errors, and hidden targets', async () => {
@@ -73,7 +73,10 @@ it('stops on cancellation, errors, and hidden targets', async () => {
     controller.abort();
     return { data: [row], meta: { cursor: 'next' } };
   });
-  await expect(runObservationQuery(client, { refId: 'A' }, request, controller.signal)).rejects.toThrow(/cancel/i);
+  await expect(runObservationQuery(client, { refId: 'A' }, request, controller.signal)).rejects.toMatchObject({
+    name: 'LangfuseClientError',
+    kind: 'cancelled',
+  });
   expect(listObservations).toHaveBeenCalledTimes(1);
   listObservations.mockReset().mockRejectedValue(new Error('upstream'));
   await expect(runObservationQuery(client, { refId: 'A' }, request, new AbortController().signal)).rejects.toThrow(
@@ -140,9 +143,11 @@ it.each([
   ).rejects.toThrow();
   expect(listObservations).not.toHaveBeenCalled();
 });
-it('stops on an empty page even when the upstream mistakenly supplies a fresh cursor', async () => {
+it('rejects an empty page with a fresh cursor as a non-progressing response', async () => {
   listObservations.mockResolvedValue({ data: [], meta: { cursor: 'unused' } });
-  await runObservationQuery(client, { refId: 'A' }, request, new AbortController().signal);
+  await expect(
+    runObservationQuery(client, { refId: 'A' }, request, new AbortController().signal)
+  ).rejects.toMatchObject({ name: 'LangfuseClientError', kind: 'malformed-response' });
   expect(listObservations).toHaveBeenCalledTimes(1);
 });
 it('uses Explore logs by default but respects explicit format and never fetches io just for a body choice', async () => {

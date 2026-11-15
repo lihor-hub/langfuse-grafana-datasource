@@ -145,7 +145,7 @@ export function buildScoreRequest(target: LangfuseQuery, range: TimeRange): Scor
 }
 
 const incompatible = (): never => {
-  throw new LangfuseClientError('unexpected', 'Incompatible Scores v3 response or repeated pagination cursor.');
+  throw new LangfuseClientError('malformed-response', 'Incompatible Scores v3 response or repeated pagination cursor.');
 };
 const record = (value: unknown): value is Record<string, unknown> =>
   Boolean(value) && typeof value === 'object' && !Array.isArray(value);

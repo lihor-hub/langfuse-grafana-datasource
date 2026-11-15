@@ -86,9 +86,11 @@ request asks for at most 1,000 rows, reduced to the remaining ceiling. The same
 AbortSignal and identical scope/time filters are used on every page. No retry
 or result cache is added here.
 
-Pagination stops at exhaustion (including an empty page), cancellation, error,
-repeated cursor or the ceiling. A repeated cursor is an incompatible-response
-error, not an infinite loop. When a cursor indicates more results at the ceiling,
+Pagination stops at exhaustion (including an empty page without a cursor),
+cancellation, error, repeated cursor or the ceiling. A repeated cursor or empty
+page with a continuation cursor is a typed `malformed-response` error, not an
+infinite loop or silently successful partial result. Cancellation uses the
+shared typed `cancelled` error so orchestration can safely classify it. When a cursor indicates more results at the ceiling,
 a warning is attached to the frame. Narrow the range/filters or raise the ceiling.
 Malformed page envelopes, cursors and typed fields are rejected without printing
 payload contents. Page errors do not return misleading partial target data;
