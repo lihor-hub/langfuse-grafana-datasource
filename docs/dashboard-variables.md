@@ -68,7 +68,8 @@ For selected values `prod` and `stage`, this becomes `"value": ["prod", "stage"]
 not a CSV string. Existing literal arrays are retained and exact variable
 references within membership arrays expand in place. Scalar operators and
 embedded text such as `prefix-$environment` reject multi-values rather than
-joining them. Use plain `$name`, `${name}` or `[[name]]` references; explicit
+joining them (except the documented Scores v3 CSV filters below). Use plain
+`$name`, `${name}` or `[[name]]` references; explicit
 Grafana formatting directives are not needed. Unresolved variables are errors.
 Grafana scoped values take precedence through its template service. Number and
 boolean filters convert values only according to their declared filter type;
@@ -81,6 +82,28 @@ drafts are not modified. Each query-kind validator must still validate the
 interpolated definition before dispatch and inject the current Grafana range.
 Do not use a custom **All value** wildcard: it would be sent as a literal filter
 value. Grafana's normal expanded selection is suitable for membership filters.
+
+### Scores v3 CSV filters
+
+Scores v3 uses direct CSV-string filters, not structured filter objects. Only
+these root properties of `scoresQuery` accept exact multi-value references:
+`id`, `name`, `source`, `dataType`, `environment`, `configId`, `queueId`,
+`authorUserId`, `traceId`, `observationId`, `sessionId`, `experimentId` and `value`.
+For example, `"environment": "$environment"` becomes
+`"environment": "prod,stage"` for two selected environments. The endpoint uses
+OR within each CSV field and AND across fields. Its documented interface has no
+CSV quoting or escaping: a variable element containing a comma is rejected
+rather than split into additional values. Empty selections are rejected; exact
+categorical `value` entries may be empty. Literal CSV in the saved query remains
+CSV. Embedded multi-value references are not supported.
+
+`value` remains a string even for NUMERIC or BOOLEAN exact values. Source and
+data-type placeholders resolve before score validation. Only root score paths
+`valueMin`, `valueMax` and `ceiling` coerce finite numeric text to JSON numbers;
+the score validator still enforces integer ceilings, data-type compatibility,
+enums, and mutually exclusive subject filters. These exceptions do not apply
+to metrics, observations, arbitrary nested paths or `fields` group selection.
+No unsupported score filter objects are introduced.
 
 ## Cache and cancellation
 
