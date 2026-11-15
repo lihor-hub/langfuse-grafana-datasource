@@ -145,6 +145,7 @@ test('real-host smoke runs against synthetic HTTP without printing payloads or c
   const child = spawn(process.execPath, ['--test', 'tests/smoke/real-langfuse.test.mjs'], {
     env: {
       ...process.env,
+      NODE_TEST_CONTEXT: undefined,
       LANGFUSE_BASE_URL: base,
       LANGFUSE_PUBLIC_KEY: 'synthetic-public',
       LANGFUSE_SECRET_KEY: 'synthetic-secret',
@@ -160,6 +161,7 @@ test('real-host smoke runs against synthetic HTTP without printing payloads or c
   });
   const [code] = await once(child, 'exit');
   assert.equal(code, 0);
+  assert.match(output, /# pass 1/);
   assert(!/synthetic-public|synthetic-secret|observation-e2e|demo-span/.test(output));
 });
 
@@ -200,6 +202,7 @@ test('real-host smoke with malformed URL does not print environment values', asy
   const child = spawn(process.execPath, ['--test', 'tests/smoke/real-langfuse.test.mjs'], {
     env: {
       ...process.env,
+      NODE_TEST_CONTEXT: undefined,
       LANGFUSE_BASE_URL: 'malformed-synthetic-private-origin',
       LANGFUSE_PUBLIC_KEY: 'synthetic-public',
       LANGFUSE_SECRET_KEY: 'synthetic-secret',
