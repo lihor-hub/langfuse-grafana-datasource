@@ -1,11 +1,14 @@
 # Bounded dependency security remediation
 
-This follow-up starts at integrated commit `b522af7`. It changes the lockfile
-through targeted npm resolution, not `npm audit fix`, overrides or manual
-transitive version substitution. Production architecture, direct Grafana/React/
-Langfuse SDK versions and the Node floor remain unchanged.
+The initial compatible-update pass starts at integrated commit `b522af7` and
+is recorded below as historical evidence. It used targeted npm resolution,
+not `npm audit fix`, overrides or manual transitive version substitution.
+A subsequent explicitly authorized, tested FTP override is documented at the
+end of this file and supersedes the initial FTP blocker/counts. Production
+architecture, direct Grafana/React/Langfuse SDK versions and the Node floor
+remain unchanged.
 
-## Scope and results
+## Initial compatible-update scope and results
 
 Before: `npm audit --json` reported **52 findings**: 20 high, 26 moderate,
 6 low, zero critical. After the approved compatible updates: **36 findings**:
@@ -128,3 +131,81 @@ markdown-it, nanoid, smol-toml, source-map-js and undici; all except basic-ftp
 have now been updated to versions outside the reported vulnerable ranges.
 Only npm's after-result has been rerun in this worker; do not label the final
 source-aware OSV result passing before parent executes it.
+
+## Subsequent authorized FTP-bounce hardening override
+
+After primary-source review, the parent explicitly approved only this narrow
+exception to the prior no-major/override boundary:
+
+```json
+{
+  "overrides": {
+    "get-uri": {
+      "basic-ftp": "6.2.6"
+    }
+  }
+}
+```
+
+This is scoped to basic-ftp beneath get-uri, pinned to one reviewed version;
+it is not a blanket override of unrelated consumers. `npm ls` confirms both
+get-uri 8.0.0 and 8.0.1 resolve basic-ftp 6.2.6 under all three tooling chains.
+No get-uri caller version, direct Grafana/React/SDK version or Node floor changed.
+The 5.3.1 and 6.2.6 basic-ftp engine declarations both accept Node `>=10`.
+
+The upstream [basic-ftp 6.0.0 release notes](https://github.com/patrickjuchli/basic-ftp/releases/tag/v6.0.0)
+identify the breaking change: separate data-transfer hosts are rejected by
+default to protect against FTP-bounce attacks. The upstream opt-in is
+`allowSeparateTransferHost: true` on Client construction. This repository does
+**not** enable it. The get-uri APIs listed above remain present. The behavioral
+tightening is intentional: a server cannot redirect the client to a different
+data host. In 6.2.6, distinct loopback addresses are considered compatible for
+negotiation, but the actual connection is always pinned to the control-host
+address. Other incompatible host pairs are rejected. An earlier version could
+connect directly to the advertised different loopback host.
+
+### Real loopback compatibility evidence
+
+`scripts/ftp-compatibility.test.mjs` uses only Node's net/http-independent local
+TCP APIs and the existing get-uri dependency. No FTP server dependency, external
+host, real account or new secret is involved. Ephemeral listeners bind only
+127.0.0.1 and 127.0.0.2. A tiny FTP control fixture rejects EPSV to exercise PASV
+host handling explicitly.
+
+- Before the override: normal same-host FTP retrieval passed, but the security
+  test failed because get-uri successfully connected to the advertised second
+  loopback host and returned its synthetic payload.
+- After the override: normal get-uri login/MDTM/PASV/RETR retrieval still returns
+  the exact synthetic payload.
+- With a second advertised loopback host: both a trusted control-host listener
+  and an alternate-host listener exist on the advertised port, offering distinct
+  payloads. Real get-uri completes successfully using only the trusted
+  control-host payload; the alternate host receives **zero connections**. This
+  proves host pinning, rather than treating a closed port as proof of security.
+  The child must finish without a timeout; an unrelated error or hang is not
+  accepted as a security pass.
+
+Both cases execute real get-uri in a bounded child with
+`--unhandled-rejections=strict`. They require exit zero and the expected trusted
+payload, without suppressing rejections or enabling separate-host opt-out.
+Get-uri attaches no rejection handler to its asynchronous `downloadTo` promise;
+a genuinely incompatible FTP setup may therefore fail its tooling process. The
+loopback test does not claim that failure mode is user-friendly or hide it.
+
+Both tests are included in `npm run test:release-tools`, so ordinary CI and the
+unsigned release workflow retain the gate. All existing link/Markdown/tooling,
+type/unit/build/package checks are rerun after clean installation.
+
+### Current audit and removal condition
+
+After this override, npm audit reports **29 findings: zero high, zero critical,
+23 moderate and 6 low**. The previous seven high FTP caller-chain findings are
+cleared. Moderate/low host/tooling findings listed earlier remain; this is not a
+clean audit or a waiver of the parent-owned exact-source OSV/validator rerun.
+
+Remove this override once maintained get-uri releases natively declare a fixed
+basic-ftp 6-or-newer range **and every installed caller chain can resolve those
+releases compatibly**. Update through those supported caller ranges, retain the
+loopback tests, then rerun clean install, link/tool checks, npm audit and the
+exact-source official validator before removing the exception. Do not relax
+transfer-host validation to make an unsupported remote FTP setup work.

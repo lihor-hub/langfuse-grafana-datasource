@@ -53,6 +53,19 @@ The follow-up does **not** waive the remaining high findings or declare the
 candidate safe to release. Integrated bundle before/after is 85,816 bytes raw,
 22,018 gzip, with only grafana-public-path.js from node_modules reachable.
 
+### Subsequent explicitly approved FTP exception
+
+The parent subsequently approved `get-uri → basic-ftp: 6.2.6` as a scoped exact
+npm override after reviewing the upstream FTP-bounce hardening release notes.
+Real loopback-only get-uri tests demonstrate ordinary FTP retrieval still works
+and a distinct advertised transfer host receives no connection/read by default.
+No transfer-host opt-out is enabled. This supersedes the prior unresolved FTP
+blocker, not the earlier evidence itself. Current npm audit is **29 findings:
+zero high, 23 moderate, 6 low**. The source-enabled official validator rerun
+remains parent-owned and must not be inferred from npm results. The detailed
+[remediation record](dependency-remediation.md) documents compatibility behavior,
+primary-source evidence and the override removal condition.
+
 ## Confirmed signing-gate fix
 
 Ordinary CI previously inherited `GRAFANA_ACCESS_POLICY_TOKEN` and signed a
