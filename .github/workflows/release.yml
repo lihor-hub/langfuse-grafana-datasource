@@ -1,31 +1,39 @@
-# This GitHub Action automates the process of building Grafana plugins.
-# (For more information, see https://github.com/grafana/plugin-actions/blob/main/build-plugin/README.md)
-name: Release
+name: Unsigned release candidate
 
 on:
+  workflow_dispatch:
   push:
     tags:
-      - 'v*' # Run workflow on version tags, e.g. v1.0.0.
+      - 'v*'
 
-permissions: read-all
+permissions:
+  contents: read
 
 jobs:
-  release:
-    permissions:
-      contents: write
-    runs-on: ubuntu-latest
+  package:
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-
-      - uses: grafana/plugin-actions/build-plugin@build-plugin/v1.2.0
+      - uses: actions/setup-node@v7
         with:
-          node-version: '22'
-        # Uncomment to enable plugin signing
-        # (For more info on how to generate the access policy token see https://grafana.com/developers/plugin-tools/publish-a-plugin/sign-a-plugin#generate-an-access-policy-token)
-        #with:
-        # Make sure to save the token in your repository secrets
-        #policy_token: $
-        # Usage of GRAFANA_API_KEY is deprecated, prefer `policy_token` option above
-        #grafana_token: $
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Validate tag version
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: node -e 'const p=require("./package.json"); if(process.env.RELEASE_TAG !== `v${p.version}`) process.exit(1)'
+      - run: npm run format:check && npm run lint && npm run typecheck
+      - run: npm run test:ci && npm run test:fixtures && npm run test:release-tools && npm run test:secrets
+      - run: npm run build && npm run validate && npm run package
+      - name: Upload unsigned archive and checksums
+        uses: actions/upload-artifact@v7
+        with:
+          name: unsigned-langfuse-release-candidate
+          path: artifacts/*
+          if-no-files-found: error
+          retention-days: 14
+      # No signing, release publication or catalog submission: separate maintainer approval required.

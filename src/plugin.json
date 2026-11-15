@@ -21,7 +21,11 @@
         "url": "https://github.com/lihor-hub/langfuse-grafana-datasource"
       }
     ],
-    "screenshots": [],
+    "screenshots": [
+      { "name": "Synthetic platform observability overview", "path": "img/platform-observability-overview.png" },
+      { "name": "Synthetic platform observability trends", "path": "img/platform-observability-trends.png" },
+      { "name": "Synthetic platform observability details", "path": "img/platform-observability-details.png" }
+    ],
     "version": "%VERSION%",
     "updated": "%TODAY%"
   },
