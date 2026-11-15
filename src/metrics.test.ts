@@ -8,6 +8,16 @@ const range: TimeRange = {
   raw: { from: 'now-1d', to: 'now' },
 };
 
+it.each([1, 1000])('rejects responses exceeding the requested %i-row limit', (limit) => {
+  const query = buildMetricsQuery({ refId: 'A' }, range, 60_000);
+  query.config.row_limit = limit;
+  const rows = Array.from({ length: limit + 1 }, () => ({
+    time_dimension: '2026-11-01T00:00:00Z',
+    count_count: 1,
+  }));
+  expect(() => metricsToFrames(rows, query, 'A')).toThrow('incompatible metrics response');
+});
+
 it('defaults to bounded observation counts and replaces saved timestamps with Grafana time', () => {
   const query = buildMetricsQuery({ refId: 'A' }, range, 60_000);
   expect(query).toMatchObject({

@@ -299,7 +299,7 @@ export function metricsToFrames(
   query: MetricsDefinition,
   refId: string
 ): DataFrame[] {
-  if (!Array.isArray(rows) || rows.some((row) => !record(row))) {
+  if (!Array.isArray(rows) || rows.length > query.config.row_limit || rows.some((row) => !record(row))) {
     throw new Error(INCOMPATIBLE);
   }
   const notices =
