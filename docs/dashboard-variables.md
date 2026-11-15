@@ -73,7 +73,9 @@ joining them (except the documented Scores v3 CSV filters below). Use plain
 Grafana formatting directives are not needed. Unresolved variables are errors.
 Grafana scoped values take precedence through its template service. Number and
 boolean filters convert values only according to their declared filter type;
-non-finite numbers and invalid boolean values are rejected.
+`numberObject` object-key filters use the same finite numeric conversion as
+`number` filters, while preserving their `column` and `key`. Non-finite numbers
+and invalid boolean values are rejected.
 
 Interpolation parses the active canonical query JSON first, replaces values
 (not keys), then serializes it. Quotes, backslashes and JSON-looking variable
