@@ -60,6 +60,10 @@ describe('repository configuration', () => {
     expect(e2eTest).toContain('expect(containsSecret).toBe(false)');
   });
 
+  it('isolates Playwright discovery from Node fixture and opt-in real-host smoke suites', () => {
+    expect(repositoryFile('playwright.config.ts')).toContain("testDir: './tests/e2e'");
+  });
+
   it('disables only the external i18next support notice in Jest', () => {
     const jestSetup = repositoryFile('jest-setup.js');
 
