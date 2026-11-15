@@ -7,17 +7,17 @@ explicit maintainer authorization.
 
 ## Prepared private state
 
-| Setting | Value |
-| --- | --- |
-| Visibility | Private |
-| Description | Grafana data source plugin for exploring Langfuse observability data. |
-| Topics | `grafana`, `grafana-datasource`, `grafana-plugin`, `langfuse`, `observability`, `monitoring`, `typescript` |
-| Homepage | Unset until the official Grafana catalog page exists |
-| Issues | Enabled |
-| Wiki | Disabled |
-| Discussions | Disabled |
-| Delete head branches after merge | Enabled |
-| Required pre-release status check | `Repository readiness` |
+| Setting                           | Value                                                                                                      |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Visibility                        | Private                                                                                                    |
+| Description                       | Grafana data source plugin for exploring Langfuse observability data.                                      |
+| Topics                            | `grafana`, `grafana-datasource`, `grafana-plugin`, `langfuse`, `observability`, `monitoring`, `typescript` |
+| Homepage                          | Unset until the official Grafana catalog page exists                                                       |
+| Issues                            | Enabled                                                                                                    |
+| Wiki                              | Disabled                                                                                                   |
+| Discussions                       | Disabled                                                                                                   |
+| Delete head branches after merge  | Enabled                                                                                                    |
+| Required pre-release status check | `Repository readiness`                                                                                     |
 
 Confirm the live state without changing it:
 
