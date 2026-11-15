@@ -9,7 +9,12 @@ test(
   'opt-in Langfuse v4 read-only smoke (no payload snapshots)',
   { skip: !base || !publicKey || !secret },
   async () => {
-    const url = new URL(base);
+    let url;
+    try {
+      url = new URL(base);
+    } catch {
+      throw new Error('Langfuse smoke requires a valid HTTP(S) base URL (value withheld)');
+    }
     assert(
       ['http:', 'https:'].includes(url.protocol) && !url.username && !url.password,
       'use a credential-free HTTP(S) base URL'
