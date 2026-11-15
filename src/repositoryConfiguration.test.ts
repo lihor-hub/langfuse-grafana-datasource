@@ -120,6 +120,7 @@ describe('repository configuration', () => {
 
   it('correlates Save & Test probes with their own proxy request instead of the shared event tail', () => {
     const e2eTest = repositoryFile('tests/e2e/configuration.spec.ts');
+    expect(e2eTest).toContain("const proxyPrefix = `/${proxyPath.replace(/^\\/+/, '')}`;");
     expect(e2eTest).toContain('const proxyRequests = completedBrowserRequests.filter');
     expect(e2eTest).toContain('event.query.fromStartTime === probeQuery.fromStartTime');
     expect(e2eTest).toContain('event.query.toStartTime === probeQuery.toStartTime');

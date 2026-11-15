@@ -67,10 +67,11 @@ test('Save & Test succeeds through the Grafana proxy and redacts the saved secre
   assertSecretRedacted(otherBrowserRequests);
   assertSecretRedacted(laterBrowserRequests);
 
+  const proxyPrefix = `/${proxyPath.replace(/^\/+/, '')}`;
   const proxyRequests = completedBrowserRequests.filter(
-    (request) => request.method === 'GET' && new URL(request.url).pathname.startsWith(`${proxyPath}/api/public/`)
+    (request) => request.method === 'GET' && new URL(request.url).pathname.startsWith(`${proxyPrefix}/api/public/`)
   );
-  expect(proxyRequests.map((request) => new URL(request.url).pathname.slice(proxyPath.length))).toEqual([
+  expect(proxyRequests.map((request) => new URL(request.url).pathname.slice(proxyPrefix.length))).toEqual([
     '/api/public/projects',
     '/api/public/v2/observations',
   ]);
