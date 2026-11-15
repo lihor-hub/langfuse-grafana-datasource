@@ -21,7 +21,7 @@ describe('repository configuration', () => {
     expect(workflow).not.toMatch(/LANGFUSE_E2E_SECRET=(?:sk-|['"]?[A-Za-z0-9]{32,})/);
   });
 
-  it('builds release metadata for version 0.1.1 with the canonical repository and plugin ID', () => {
+  it('builds release metadata for version 0.2.0 with the canonical repository and plugin ID', () => {
     const repositoryUrl = 'https://github.com/lihor-hub/langfuse-grafana-datasource';
     const packageJson = JSON.parse(repositoryFile('package.json')) as {
       version: string;
@@ -36,11 +36,12 @@ describe('repository configuration', () => {
       info: { links: Array<{ name: string; url: string }>; version: string };
     };
 
-    expect(packageJson.version).toBe('0.1.1');
+    expect(packageJson.version).toBe('0.2.0');
     expect(packageJson.repository).toEqual({ type: 'git', url: `${repositoryUrl}.git` });
-    expect(packageLock.version).toBe('0.1.1');
-    expect(packageLock.packages[''].version).toBe('0.1.1');
-    expect(repositoryFile('CHANGELOG.md')).toContain('## 0.1.1 (Unreleased)');
+    expect(packageLock.version).toBe('0.2.0');
+    expect(packageLock.packages[''].version).toBe('0.2.0');
+    expect(repositoryFile('CHANGELOG.md')).toContain('## 0.2.0 (Unreleased)');
+    expect(repositoryFile('CHANGELOG.md')).toContain('## 0.1.1 (2026-08-06)');
     expect(pluginJson).toEqual(
       expect.objectContaining({
         id: 'lihorhub-langfuse-datasource',
