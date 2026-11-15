@@ -1,4 +1,5 @@
 import { expect, test } from '@grafana/plugin-e2e';
+import { HISTOGRAM_DASHBOARD_TIME, HISTOGRAM_GRANULARITY } from '../../src/metrics.testFixtures';
 
 const datasourceType = 'lihorhub-langfuse-datasource';
 const definition = (histogram: boolean, timed: boolean) => ({
@@ -13,7 +14,7 @@ const definition = (histogram: boolean, timed: boolean) => ({
       value: histogram ? (timed ? 'fixture-histogram-heatmap' : 'fixture-histogram-table') : 'synthetic',
     },
   ],
-  ...(timed ? { timeDimension: { granularity: 'hour' } } : {}),
+  ...(timed ? { timeDimension: { granularity: HISTOGRAM_GRANULARITY } } : {}),
   orderBy: [{ field: histogram ? 'histogram_latency' : 'count_count', direction: 'desc' }],
   config: { row_limit: 25, ...(histogram ? { bins: 2 } : {}) },
 });
@@ -109,7 +110,7 @@ for (const timed of [true, false]) {
           uid,
           title: uid,
           schemaVersion: 39,
-          time: { from: 'now-6h', to: 'now' },
+          time: HISTOGRAM_DASHBOARD_TIME,
           panels: [
             {
               id: 1,
@@ -135,7 +136,23 @@ for (const timed of [true, false]) {
       if (timed) {
         await edit.toggleTableView();
       }
-      await expect(edit.panel.data).toContainText(timed ? ['xMin', 'yMin', 'yMax', 'count'] : ['histogram_latency']);
+      // Panel.data contains gridcells only, not column headers.
+      const headers = edit.panel.locator.getByRole('columnheader');
+      if (timed) {
+        await expect(headers).toContainText(['xMin', 'xMax', 'yMin', 'yMax', 'count']);
+        for (const count of [3, 7, 4, 8]) {
+          await expect(edit.panel.data.filter({ hasText: new RegExp(`^${count}$`) })).toBeVisible();
+        }
+      } else {
+        await expect(headers).toContainText(['name', 'histogram_latency']);
+        await expect(edit.panel.data).toContainText(['demo-operation']);
+        const histogramCell = edit.panel.data.filter({ hasText: /^\s*\[/ });
+        await expect(histogramCell).toBeVisible();
+        expect(JSON.parse(await histogramCell.innerText())).toEqual([
+          [0, 100, 3],
+          [100, 200, 7],
+        ]);
+      }
       await page.screenshot({ path: testInfo.outputPath(timed ? 'histogram-cells.png' : 'histogram-table.png') });
     } finally {
       await page.request.delete(`/api/dashboards/uid/${uid}`);
