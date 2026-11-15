@@ -40,7 +40,7 @@ describe('repository configuration', () => {
     expect(packageJson.repository).toEqual({ type: 'git', url: `${repositoryUrl}.git` });
     expect(packageLock.version).toBe('0.2.0');
     expect(packageLock.packages[''].version).toBe('0.2.0');
-    expect(repositoryFile('CHANGELOG.md')).toContain('## 0.2.0 (Unreleased)');
+    expect(repositoryFile('CHANGELOG.md')).toContain('## 0.2.0 (2026-11-15)');
     expect(repositoryFile('CHANGELOG.md')).toContain('## 0.1.1 (2026-08-06)');
     expect(pluginJson).toEqual(
       expect.objectContaining({
