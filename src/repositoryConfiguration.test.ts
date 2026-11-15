@@ -118,6 +118,14 @@ describe('repository configuration', () => {
     expect(e2eTest).toContain('toTime - fromTime === 60 * 60 * 1000');
   });
 
+  it('correlates Save & Test probes with their own proxy request instead of the shared event tail', () => {
+    const e2eTest = repositoryFile('tests/e2e/configuration.spec.ts');
+    expect(e2eTest).toContain('const proxyRequests = completedBrowserRequests.filter');
+    expect(e2eTest).toContain('event.query.fromStartTime === probeQuery.fromStartTime');
+    expect(e2eTest).toContain('event.query.toStartTime === probeQuery.toStartTime');
+    expect(e2eTest).not.toContain('events.slice(-2)');
+  });
+
   it('audits all relevant post-save browser requests without exposing secret-bearing values', () => {
     const e2eTest = repositoryFile('tests/e2e/configuration.spec.ts');
 
