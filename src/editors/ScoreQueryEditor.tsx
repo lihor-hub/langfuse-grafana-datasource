@@ -26,9 +26,10 @@ const filters = [
 
 export function ScoreQueryEditor({
   query,
+  validationQuery,
   onChange,
   onRunQuery,
-}: QueryEditorProps<DataSource, LangfuseQuery, LangfuseDataSourceOptions>) {
+}: QueryEditorProps<DataSource, LangfuseQuery, LangfuseDataSourceOptions> & { validationQuery?: LangfuseQuery }) {
   const text = query.scoresQuery ?? DEFAULT_SCORES_QUERY;
   let definition: ScoreQuery | undefined;
   let error: string | undefined;
@@ -37,7 +38,7 @@ export function ScoreQueryEditor({
     if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
       definition = parsed;
     }
-    parseScoreQuery(text);
+    parseScoreQuery((validationQuery ?? query).scoresQuery);
   } catch (cause) {
     error = cause instanceof SyntaxError ? 'Invalid score query: enter a JSON object.' : (cause as Error).message;
   }
@@ -93,7 +94,12 @@ export function ScoreQueryEditor({
             <Field key={key} label={label}>
               <Input
                 aria-label={label}
-                type={key === 'ceiling' || key === 'valueMin' || key === 'valueMax' ? 'number' : 'text'}
+                type={
+                  (key === 'ceiling' || key === 'valueMin' || key === 'valueMax') &&
+                  typeof definition?.[key] !== 'string'
+                    ? 'number'
+                    : 'text'
+                }
                 step={key === 'ceiling' ? 1 : 'any'}
                 value={definition?.[key] ?? (key === 'ceiling' ? 500 : '')}
                 onChange={(event) => {

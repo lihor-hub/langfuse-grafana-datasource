@@ -4,7 +4,7 @@ import type { DataSource } from '../datasource';
 import type { LangfuseQuery } from '../types';
 import { ScoreQueryEditor } from './ScoreQueryEditor';
 
-function setup(initial: LangfuseQuery = { refId: 'A', kind: 'scores' }) {
+function setup(initial: LangfuseQuery = { refId: 'A', kind: 'scores' }, validationQuery?: LangfuseQuery) {
   const onRunQuery = jest.fn();
   const onChange = jest.fn();
   function Editor() {
@@ -13,6 +13,7 @@ function setup(initial: LangfuseQuery = { refId: 'A', kind: 'scores' }) {
       <ScoreQueryEditor
         {...({
           query,
+          validationQuery,
           datasource: {} as DataSource,
           onRunQuery,
           onChange: (next: LangfuseQuery) => {
@@ -26,6 +27,46 @@ function setup(initial: LangfuseQuery = { refId: 'A', kind: 'scores' }) {
   render(<Editor />);
   return { onRunQuery, onChange };
 }
+
+test('resolved validation enables execution without displaying or persisting resolved variables', () => {
+  const raw = {
+    refId: 'A',
+    editorMode: 'advanced' as const,
+    scoresQuery: '{"source":"$source","dataType":"$type","value":"$value","valueMin":"$lower","ceiling":"$limit"}',
+  };
+  const { onRunQuery, onChange } = setup(raw, {
+    refId: 'A',
+    scoresQuery: '{"source":"API","dataType":"NUMERIC","value":"0.5","valueMin":0,"ceiling":100}',
+  });
+  const input = screen.getByRole('textbox', { name: 'Scores v3 query (JSON)' });
+  expect(input).toHaveValue(raw.scoresQuery);
+  expect(screen.getByRole('button', { name: 'Run score query' })).toBeEnabled();
+  fireEvent.blur(input);
+  expect(onRunQuery).toHaveBeenCalledTimes(1);
+  fireEvent.click(screen.getByRole('button', { name: 'Guided' }));
+  expect(screen.getByRole('textbox', { name: 'Data types' })).toHaveValue('$type');
+  expect(screen.getByRole('textbox', { name: 'Numeric lower bound' })).toHaveValue('$lower');
+  fireEvent.change(screen.getByRole('textbox', { name: 'Score name' }), { target: { value: 'quality' } });
+  const persisted = JSON.parse(onChange.mock.calls.at(-1)[0].scoresQuery);
+  expect(persisted).toMatchObject({
+    source: '$source',
+    dataType: '$type',
+    value: '$value',
+    valueMin: '$lower',
+    ceiling: '$limit',
+    name: 'quality',
+  });
+});
+
+test('invalid resolved values prevent execution even when raw syntax is valid', () => {
+  const { onRunQuery } = setup(
+    { refId: 'A', editorMode: 'advanced', scoresQuery: '{"dataType":"$type","valueMin":"$lower"}' },
+    { refId: 'A', scoresQuery: '{"dataType":"BOOLEAN","valueMin":0}' }
+  );
+  expect(screen.getByRole('button', { name: 'Run score query' })).toBeDisabled();
+  fireEvent.blur(screen.getByRole('textbox', { name: 'Scores v3 query (JSON)' }));
+  expect(onRunQuery).not.toHaveBeenCalled();
+});
 
 test('guided filters and field groups round-trip the canonical advanced definition', () => {
   const { onChange, onRunQuery } = setup({
