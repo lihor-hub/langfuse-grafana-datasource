@@ -195,3 +195,25 @@ test('auth and bounds errors do not expose keys; aborts close delayed responses'
   assert(!/synthetic-public|synthetic-secret|Authorization/.test(diagnostics));
   assert(JSON.parse(diagnostics).events.some((event) => event.query.delayMs === '5000' && event.aborted));
 });
+
+test('real-host smoke with malformed URL does not print environment values', async () => {
+  const child = spawn(process.execPath, ['--test', 'tests/smoke/real-langfuse.test.mjs'], {
+    env: {
+      ...process.env,
+      LANGFUSE_BASE_URL: 'malformed-synthetic-private-origin',
+      LANGFUSE_PUBLIC_KEY: 'synthetic-public',
+      LANGFUSE_SECRET_KEY: 'synthetic-secret',
+    },
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  let output = '';
+  child.stdout.on('data', (chunk) => {
+    output += chunk;
+  });
+  child.stderr.on('data', (chunk) => {
+    output += chunk;
+  });
+  const [code] = await once(child, 'exit');
+  assert.notEqual(code, 0);
+  assert(!output.includes('malformed-synthetic-private-origin'));
+});
