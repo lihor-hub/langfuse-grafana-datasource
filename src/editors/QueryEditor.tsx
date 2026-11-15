@@ -1,49 +1,59 @@
 import React from 'react';
-import { dateTime, type QueryEditorProps } from '@grafana/data';
-import { Field, TextArea } from '@grafana/ui';
+import type { QueryEditorProps } from '@grafana/data';
+import { Combobox, Field } from '@grafana/ui';
 
 import type { DataSource } from '../datasource';
-import { buildMetricsQuery, DEFAULT_METRICS_QUERY } from '../metrics';
+import { interpolateQuery } from '../variables';
 import type { LangfuseDataSourceOptions, LangfuseQuery } from '../types';
+import { MetricsQueryEditor } from './MetricsQueryEditor';
+import { ObservationQueryEditor } from './ObservationQueryEditor';
+import { ScoreQueryEditor } from './ScoreQueryEditor';
 
-export function QueryEditor({
-  query,
-  range,
-  onChange,
-  onRunQuery,
-}: QueryEditorProps<DataSource, LangfuseQuery, LangfuseDataSourceOptions>) {
-  let error: string | undefined;
+const kinds = [
+  { label: 'Aggregate metrics', value: 'metrics' as const },
+  { label: 'Observations (table / logs)', value: 'observations' as const },
+  { label: 'Scores (table)', value: 'scores' as const },
+];
+
+export function QueryEditor(props: QueryEditorProps<DataSource, LangfuseQuery, LangfuseDataSourceOptions>) {
+  const { query, onChange } = props;
+  let validationQuery = query;
+  let validationError: string | undefined;
   try {
-    buildMetricsQuery(
-      query,
-      range ?? {
-        from: dateTime().subtract(1, 'hour'),
-        to: dateTime(),
-        raw: { from: 'now-1h', to: 'now' },
-      },
-      60_000
-    );
-  } catch (cause) {
-    error = (cause as Error).message;
+    validationQuery = interpolateQuery(query, props.data?.request?.scopedVars ?? {});
+  } catch {
+    const source =
+      query.kind === 'observations'
+        ? query.observationsQuery
+        : query.kind === 'scores'
+          ? query.scoresQuery
+          : query.metricsQuery;
+    try {
+      JSON.parse(source ?? '{}');
+      validationError =
+        'Check dashboard variable selections. Multi-value variables require documented membership operators or score CSV filters; numeric fields require numeric values.';
+    } catch {
+      // The feature editor reports JSON syntax errors; template-service exceptions are never displayed.
+    }
   }
+  const editorProps = { ...props, validationQuery, validationError };
   return (
-    <Field
-      label="Metrics v2 query (JSON)"
-      description="Aggregate observations or scores. Grafana supplies the time range. Use timeDimension for time series; omit it for tables and totals. Maximum 1,000 rows."
-      invalid={Boolean(error)}
-      error={error}
-    >
-      <TextArea
-        aria-label="Metrics v2 query (JSON)"
-        rows={14}
-        value={query.metricsQuery ?? DEFAULT_METRICS_QUERY}
-        onChange={(event) => onChange({ ...query, kind: 'metrics', metricsQuery: event.currentTarget.value })}
-        onBlur={() => {
-          if (!error) {
-            onRunQuery();
-          }
-        }}
-      />
-    </Field>
+    <>
+      <Field label="Query kind">
+        <Combobox
+          aria-label="Query kind"
+          value={query.kind ?? 'metrics'}
+          options={kinds}
+          onChange={({ value }) => onChange({ ...query, kind: value })}
+        />
+      </Field>
+      {query.kind === 'observations' ? (
+        <ObservationQueryEditor {...editorProps} />
+      ) : query.kind === 'scores' ? (
+        <ScoreQueryEditor {...editorProps} />
+      ) : (
+        <MetricsQueryEditor {...editorProps} />
+      )}
+    </>
   );
 }

@@ -118,10 +118,13 @@ export function ConfigEditor({ options, onOptionsChange }: Props) {
           onChange={onTimeoutChange}
         />
       </InlineField>
-      <InlineField label="Langfuse UI URL">
+      <InlineField
+        label="Langfuse UI URL"
+        tooltip="Optional absolute HTTP(S) application root, including any deployment subpath. Do not use a proxy URL or /project/... route."
+      >
         <Input
           aria-label="Langfuse UI URL"
-          placeholder="Optional link target"
+          placeholder="https://cloud.langfuse.com"
           value={options.jsonData.langfuseUiUrl ?? ''}
           onChange={onUiUrlChange}
         />

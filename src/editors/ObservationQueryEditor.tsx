@@ -18,7 +18,11 @@ export function ObservationQueryEditor({
   onChange,
   onRunQuery,
   validationQuery,
-}: QueryEditorProps<DataSource, LangfuseQuery, LangfuseDataSourceOptions> & { validationQuery?: LangfuseQuery }) {
+  validationError,
+}: QueryEditorProps<DataSource, LangfuseQuery, LangfuseDataSourceOptions> & {
+  validationQuery?: LangfuseQuery;
+  validationError?: string;
+}) {
   let definition: ObservationQueryDefinition = {};
   let error: string | undefined;
   try {
@@ -31,6 +35,7 @@ export function ObservationQueryEditor({
   } catch {
     error = 'Invalid observation query. Check filters, field groups, format and ceiling (1–5,000).';
   }
+  error = validationError ?? error;
   const advanced = query.editorMode === 'advanced' || Boolean(error);
   function update(patch: Partial<ObservationQueryDefinition>) {
     onChange({

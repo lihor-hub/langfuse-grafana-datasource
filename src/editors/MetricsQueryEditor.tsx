@@ -25,7 +25,11 @@ export function MetricsQueryEditor({
   onRunQuery,
   data,
   validationQuery,
-}: QueryEditorProps<DataSource, LangfuseQuery, LangfuseDataSourceOptions> & { validationQuery?: LangfuseQuery }) {
+  validationError,
+}: QueryEditorProps<DataSource, LangfuseQuery, LangfuseDataSourceOptions> & {
+  validationQuery?: LangfuseQuery;
+  validationError?: string;
+}) {
   const text = query.metricsQuery ?? DEFAULT_METRICS_QUERY;
   let error: string | undefined;
   let definition: Definition | undefined;
@@ -38,6 +42,7 @@ export function MetricsQueryEditor({
   } catch (cause) {
     error = (cause as Error).message;
   }
+  error = validationError ?? error;
   try {
     const parsed = JSON.parse(text);
     if (

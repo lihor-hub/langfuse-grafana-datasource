@@ -40,7 +40,7 @@ it('executes real query models, skips hidden targets and never sends invalid JSO
   expect(result.data[0].fields[1].values).toEqual([7]);
   expect(result.data[0].meta?.notices).toEqual(
     expect.arrayContaining([
-      expect.objectContaining({ text: expect.stringContaining('C: Metrics query must be valid JSON.') }),
+      expect.objectContaining({ text: expect.stringContaining('C: Invalid Langfuse query or filter.') }),
     ])
   );
 });
@@ -49,7 +49,7 @@ it('sanitizes failed targets and preserves successful empty frames', async () =>
   const queryMetrics = jest
     .fn()
     .mockResolvedValueOnce({ data: [] })
-    .mockRejectedValueOnce(new LangfuseClientError('unexpected', 'sk-do-not-expose', 429));
+    .mockRejectedValueOnce(new LangfuseClientError('rate-limit', 'sk-do-not-expose', 429));
   const datasource = new DataSource(settings, () => client(queryMetrics));
   const result = await lastValueFrom(datasource.query(request([{ refId: 'A' }, { refId: 'B' }])));
   expect(result.data).toHaveLength(1);
@@ -60,10 +60,10 @@ it('sanitizes failed targets and preserves successful empty frames', async () =>
 
 it('rejects all-failed queries with a safe error rather than returning an empty success', async () => {
   const datasource = new DataSource(settings, () => client(jest.fn().mockRejectedValue(new Error('sk-do-not-expose'))));
-  await expect(lastValueFrom(datasource.query(request([{ refId: 'A' }])))).rejects.toThrow('metrics request failed');
-  await expect(lastValueFrom(datasource.query(request([{ refId: 'A', kind: 'observations' }])))).rejects.toThrow(
-    'aggregate metrics only'
-  );
+  await expect(lastValueFrom(datasource.query(request([{ refId: 'A' }])))).rejects.toThrow('Langfuse query failed');
+  await expect(
+    lastValueFrom(datasource.query(request([{ refId: 'A', kind: 'observations', observationsQuery: '{' }])))
+  ).rejects.toThrow('Invalid Langfuse query');
 });
 
 it('caps concurrent targets at four and aborts them on unsubscribe', () => {
