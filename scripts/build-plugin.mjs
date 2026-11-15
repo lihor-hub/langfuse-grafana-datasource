@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { copyFileSync, mkdirSync, readFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, readFileSync, readdirSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname } from 'node:path';
 
@@ -25,7 +25,10 @@ const dashboard = JSON.parse(readFileSync(dashboardPath, 'utf8'));
 assert(manifest.includes.some((entry) => entry.type === 'dashboard' && entry.path === dashboardPath));
 assert.equal(dashboard.templating.list[0].query, manifest.id);
 
-for (const file of [dashboardPath, 'docs/platform-observability-dashboard.md']) {
+const userGuides = readdirSync('docs')
+  .filter((file) => file.endsWith('.md'))
+  .map((file) => `docs/${file}`);
+for (const file of [dashboardPath, 'NOTICE', ...userGuides]) {
   const destination = `dist/${file}`;
   mkdirSync(dirname(destination), { recursive: true });
   copyFileSync(file, destination);

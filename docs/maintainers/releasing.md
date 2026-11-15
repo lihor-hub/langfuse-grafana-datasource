@@ -5,9 +5,11 @@ release. Changing repository visibility, pushing a tag, publishing an artifact,
 using signing credentials, and submitting to Grafana each require explicit
 maintainer approval for that release.
 
-The repository is currently pre-release and has no runnable plugin package.
-Stop at the first gate until the implementation, package manifest, workflows,
-and commands it requires exist.
+The repository builds a runnable unsigned development candidate. Concurrent
+feature integration and fresh cross-feature browser evidence are still gates;
+local packaging success alone is not release approval. The release workflow
+uploads an unsigned versioned archive and checksums as an Actions artifact. It
+does not publish a GitHub release, sign, or submit to the catalog.
 
 ## Release principles
 
@@ -45,15 +47,15 @@ and commands it requires exist.
 
 ## Gate 2: version and compatibility
 
-For the first release, set the release version to `0.1.0`. For later releases,
-choose the semantic version from the compatibility and behavior change, not
-from the size of the diff.
+Choose the semantic version from the compatibility and behavior change, not
+from the size of the diff. The current package version is the archive version;
+do not reuse an already published version.
 
 1. Compare version-bearing files after the implementation creates them:
 
    ```bash
    jq -r '.version' package.json
-   jq -r '.info.version' src/plugin.json
+   jq -r '.info.version' dist/plugin.json
    jq -r '.dependencies.grafanaDependency' src/plugin.json
    ```
 
@@ -61,8 +63,10 @@ from the size of the diff.
    leading `v`.
 3. Confirm the minimum Grafana dependency and Langfuse v4 requirement match the
    README and compatibility documentation.
-4. Run the complete end-to-end suite on Grafana 12.3.0 and every additional
-   Grafana version named in the repository's supported matrix.
+4. Run the complete end-to-end suite on a pinned Grafana 12.3 patch and the
+   pinned current supported image, plus every image in CI. Retain exact image
+   versions/digests with the candidate evidence; nightly is extra evidence,
+   not a replacement for a pinned current version.
 5. Test Langfuse Cloud and the documented self-hosted Langfuse v4 fixture or
    environment.
 6. Verify saved-secret preservation and reset, authentication failure,
@@ -78,16 +82,32 @@ ad-hoc commands for a missing release gate.
 
 ```bash
 npm ci
+npm run format:check
 npm run lint
 npm run typecheck
 npm test -- --runInBand
+npm run test:fixtures
+npm run test:release-tools
+npm run test:secrets
 npm run build
+npm run validate
+npm run package
 npm run e2e
 ```
 
-Run the Grafana plugin validator against the production output using the
-repository-pinned command or workflow. Confirm that the validator reports no
-blocking findings.
+`npm run validate` performs local metadata, capability, referenced-asset,
+archive-file and secret checks. It does not replace Grafana's upstream plugin
+validator. CI runs the upstream metadata analyzer in Docker against the exact
+unsigned archive; retain the validator version and output for a release. Stop
+on blocking findings. Keep caches outside the checkout so Markdown checks do
+not traverse downloaded package documentation.
+
+`npm run package` uses system `zip`, sorted entries, fixed 1980 UTC timestamps
+and normalized permissions; repeated packaging of identical `dist` bytes is
+byte-for-byte deterministic. It writes `artifacts/<id>-<version>.zip` plus
+`.sha1` and `.sha256`. This does not promise identical webpack bytes across
+build dates (metadata includes the build date) or across different toolchains.
+Build once and verify/package that exact output.
 
 Inspect the actual GitHub Actions run and require successful jobs for:
 
@@ -135,8 +155,9 @@ and [build automation guidance](https://grafana.com/developers/plugin-tools/publ
    manifest expected for the applicable signature stage.
 4. Reject development configuration, tests, credentials, caches, and unrelated
    source files from the distributable archive.
-5. Generate the SHA1 required by Grafana's submission form and a SHA256 for
-   users:
+5. `npm run package` generates SHA1 for Grafana's submission form and SHA256
+   for users. Verify them against the immutable archive, substituting the
+   approved version in these illustrative commands:
 
    ```bash
    shasum -a 1 lihorhub-langfuse-datasource-0.1.0.zip
@@ -206,10 +227,11 @@ After authorization:
 3. Remove the private-repository URL exceptions from
    `.markdown-link-check.json`, then verify the live Issues, Security, and
    changelog comparison links.
-4. Create and push the version tag from the reviewed commit using the
-   repository's release workflow.
-5. Wait for the release workflow to produce the draft release, artifact,
-   checksums, and provenance.
+4. Only after explicit approval, create/push the version tag from the reviewed
+   commit. The unsigned workflow checks that the tag matches `package.json`.
+5. Download the unsigned Actions artifact and its checksums. Creating a draft
+   release, attaching immutable files and retaining provenance are separate
+   authorized maintainer actions; the workflow does not perform them.
 6. Repeat the checksum and clean-install checks on the final draft assets.
 7. Publish the GitHub release without replacing the validated files.
 
