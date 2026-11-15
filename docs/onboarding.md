@@ -2,13 +2,15 @@
 
 ## Release status
 
-This is an unsigned development candidate, not a catalog installation promise.
-The existing sample dashboard uses Metrics v2 and demonstrates observation
+The plugin implements Metrics v2, Observations v2, Scores v3, discovery
+variables, guided/JSON editors and histogram rendering. An unsigned review
+candidate is not a catalog installation promise; use the verification evidence
+attached to the exact release, not these instructions alone.
+
+The sample dashboard uses aggregate Metrics v2 and demonstrates observation
 volume, generation latency/cost/tokens, model grouping, error observations and
 numeric score trends. See [the dashboard guide](platform-observability-dashboard.md).
-Individual observations, scores, discovery variables, guided editors and
-histogram rendering are concurrent feature tracks: their integration and fresh
-Grafana browser evidence are release gates, not proven by these instructions.
+Use Explore to test individual observations/logs and score queries.
 
 ## Requirements and installation
 
@@ -109,12 +111,11 @@ The canonical definitions are `metricsQuery`, `observationsQuery` and
 | Quality trends                   | Metrics `scores-numeric` or `scores-categorical` | Boolean aggregates use the numeric view; never aggregate raw paginated scores in the browser.                         |
 | Dashboard selectors              | Discovery via Metrics v2                         | Low-cardinality dimensions, bounded lookback and 60-second instance-local cache; no raw-ID scanning.                  |
 
-These are the approved feature contracts. Before advertising them for an
-artifact, complete parent integration and test each in dashboards and Explore.
-Guided and advanced editing must round-trip one definition, retain invalid JSON
-for correction and refuse to send it. Multi-value variables must become typed
-filter arrays, not concatenated JSON. Refer to the individual feature-track
-guides included after integration for their exact query-definition examples.
+Guided and advanced editing share one canonical definition. Invalid JSON stays
+editable and cannot run. Multi-value variables expand into supported typed
+filter arrays, not concatenated JSON. For exact examples, see the
+[metrics](metrics-queries.md), [observations](observation-queries.md),
+[scores](score-queries.md) and [variables](dashboard-variables.md) guides.
 
 The baseline dashboard uses a data-source selector and literal filters; it does
 not yet demonstrate the discovery-variable or raw observation/score UI. Do not

@@ -5,9 +5,9 @@ release. Changing repository visibility, pushing a tag, publishing an artifact,
 using signing credentials, and submitting to Grafana each require explicit
 maintainer approval for that release.
 
-The repository builds a runnable unsigned development candidate. Concurrent
-feature integration and fresh cross-feature browser evidence are still gates;
-local packaging success alone is not release approval. The release workflow
+The repository builds a runnable unsigned candidate. Fresh cross-feature
+browser evidence from the exact candidate is a release gate; local packaging
+success alone is not release approval. The release workflow
 uploads an unsigned versioned archive and checksums as an Actions artifact. It
 does not publish a GitHub release, sign, or submit to the catalog.
 
