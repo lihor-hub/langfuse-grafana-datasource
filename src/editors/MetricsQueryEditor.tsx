@@ -13,6 +13,9 @@ import {
 } from '../metricsCapabilities';
 
 const options = (values: readonly string[]) => values.map((value) => ({ label: value, value }));
+const record = (value: unknown): value is Record<string, unknown> =>
+  value !== null && typeof value === 'object' && !Array.isArray(value);
+const scalar = (value: unknown) => value == null || ['string', 'number', 'boolean'].includes(typeof value);
 const defaultValue = (type: string): unknown =>
   type === 'number' ? 0 : type === 'boolean' ? false : type.endsWith('Options') ? [] : '';
 type Definition = Omit<MetricsDefinition, 'fromTimestamp' | 'toTimestamp'> &
@@ -49,13 +52,35 @@ export function MetricsQueryEditor({
       parsed &&
       METRICS_VIEWS.includes(parsed.view) &&
       Array.isArray(parsed.metrics) &&
-      parsed.metrics.every((m: unknown) => m && typeof m === 'object' && 'measure' in m && 'aggregation' in m) &&
+      parsed.metrics.every(
+        (m: unknown) => record(m) && typeof m.measure === 'string' && typeof m.aggregation === 'string'
+      ) &&
       (parsed.filters === undefined ||
-        (Array.isArray(parsed.filters) && parsed.filters.every((f: unknown) => f && typeof f === 'object'))) &&
+        (Array.isArray(parsed.filters) &&
+          parsed.filters.every(
+            (f: unknown) =>
+              record(f) &&
+              typeof f.type === 'string' &&
+              typeof f.column === 'string' &&
+              typeof f.operator === 'string' &&
+              (f.key === undefined || typeof f.key === 'string') &&
+              (scalar(f.value) ||
+                (f.type.endsWith('Options') &&
+                  Array.isArray(f.value) &&
+                  f.value.every((value) => typeof value === 'string')))
+          ))) &&
       (parsed.dimensions === undefined ||
-        (Array.isArray(parsed.dimensions) && parsed.dimensions.every((d: unknown) => d && typeof d === 'object'))) &&
+        (Array.isArray(parsed.dimensions) &&
+          parsed.dimensions.every((d: unknown) => record(d) && typeof d.field === 'string'))) &&
       (parsed.orderBy == null ||
-        (Array.isArray(parsed.orderBy) && parsed.orderBy.every((o: unknown) => o && typeof o === 'object')))
+        (Array.isArray(parsed.orderBy) &&
+          parsed.orderBy.every(
+            (o: unknown) => record(o) && typeof o.field === 'string' && typeof o.direction === 'string'
+          ))) &&
+      (parsed.timeDimension == null ||
+        (record(parsed.timeDimension) && typeof parsed.timeDimension.granularity === 'string')) &&
+      (parsed.config == null ||
+        (record(parsed.config) && scalar(parsed.config.row_limit) && scalar(parsed.config.bins)))
     ) {
       definition = parsed;
     }
@@ -128,6 +153,7 @@ export function MetricsQueryEditor({
       <div>
         <Button
           variant={mode === 'guided' ? 'primary' : 'secondary'}
+          disabled={!definition}
           onClick={() => onChange({ ...query, editorMode: 'guided' })}
         >
           Guided

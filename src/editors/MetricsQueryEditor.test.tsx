@@ -191,3 +191,34 @@ it('keeps typed object filters editable and round-trips guided ordering', () => 
   );
   expect(value.orderBy).toEqual([{ field: 'count_count', direction: 'asc' }]);
 });
+
+it.each([
+  { filters: [{}] },
+  { metrics: [{ measure: {}, aggregation: 'count' }] },
+  { dimensions: [{}] },
+  { orderBy: [{}] },
+  { timeDimension: { granularity: {} } },
+  { config: { row_limit: {} } },
+  { filters: [{ type: 'string', column: 'name', operator: '=', value: { toString: null } }] },
+])('retains structurally unsafe guided input as editable JSON: %j', (patch) => {
+  const metricsQuery = JSON.stringify({ ...JSON.parse(DEFAULT_METRICS_QUERY), ...patch });
+  const { run } = setup({ refId: 'A', metricsQuery });
+  expect(screen.getByRole('textbox', { name: 'Metrics v2 query (JSON)' })).toHaveValue(metricsQuery);
+  expect(screen.getByRole('button', { name: 'Guided' })).toBeDisabled();
+  expect(screen.getByRole('button', { name: 'Run query' })).toBeDisabled();
+  expect(run).not.toHaveBeenCalled();
+});
+
+it('blocks Advanced to Guided for an incomplete filter without dropping its JSON', () => {
+  const { changed, run } = setup({ refId: 'A', editorMode: 'advanced' });
+  const metricsQuery = JSON.stringify({ ...JSON.parse(DEFAULT_METRICS_QUERY), filters: [{}] });
+  fireEvent.change(screen.getByRole('textbox', { name: 'Metrics v2 query (JSON)' }), {
+    target: { value: metricsQuery },
+  });
+  const guided = screen.getByRole('button', { name: 'Guided' });
+  expect(guided).toBeDisabled();
+  fireEvent.click(guided);
+  expect(screen.getByRole('textbox', { name: 'Metrics v2 query (JSON)' })).toHaveValue(metricsQuery);
+  expect(changed).toHaveBeenCalledTimes(1);
+  expect(run).not.toHaveBeenCalled();
+});
