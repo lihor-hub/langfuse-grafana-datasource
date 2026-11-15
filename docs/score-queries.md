@@ -126,7 +126,11 @@ payloads in error messages. Empty successful responses preserve their schemas.
 `src/transformers/scores.ts` exports
 `scoresToFrames(items, validatedDefinition, refId): DataFrame[]`.
 `src/editors/ScoreQueryEditor.tsx` exports `ScoreQueryEditor` with the standard
-Grafana `QueryEditorProps<DataSource, LangfuseQuery, LangfuseDataSourceOptions>`.
+Grafana `QueryEditorProps<DataSource, LangfuseQuery, LangfuseDataSourceOptions>`
+and optional `validationQuery?: LangfuseQuery`. The parent can supply an
+interpolated validation target without replacing raw placeholders in displayed
+controls, advanced JSON or `onChange` output. Without that prop, validation uses
+the raw query.
 
 The parent must route `kind === "scores"` to this editor and runner, interpolate
 before validation, propagate cancellation, preserve frame notices, and enforce
@@ -139,7 +143,8 @@ Synthetic unit/component tests cover typed values, all filters/groups,
 validation, empty/malformed pages, ceilings, repeated cursors, cancellation and
 canonical editor round trips. `tests/e2e/scores-table.spec.ts` adds five typed
 score-table checks through the real Grafana proxy using temporary dashboards;
-execute it only after integrating the shared runner/editor wiring and mock. They do not establish real Grafana proxy, live
-Langfuse compatibility or variable integration. Those checks require the
+execute it only after integrating the shared runner/editor wiring and mock.
+Unit/component passes do not establish real Grafana proxy, live Langfuse
+compatibility or variable integration. Those checks require the
 parent's shared wiring and integrated mock/browser matrix. No real credentials,
 production infrastructure, or captured score data are used by this track.
