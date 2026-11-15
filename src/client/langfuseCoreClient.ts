@@ -1,10 +1,5 @@
 import type { DataSourceInstanceSettings } from '@grafana/data';
-import {
-  LangfuseAPIClient,
-  LangfuseAPIError,
-  LangfuseAPITimeoutError,
-  type GetMetricsV2Request,
-} from '@langfuse/core';
+import { LangfuseAPIClient, LangfuseAPIError, LangfuseAPITimeoutError, type GetMetricsV2Request } from '@langfuse/core';
 
 import type { LangfuseDataSourceOptions } from '../types';
 import { LangfuseClientError } from './errors';

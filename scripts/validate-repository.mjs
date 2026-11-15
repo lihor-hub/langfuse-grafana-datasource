@@ -58,9 +58,7 @@ async function requireFile(relativePath) {
 }
 
 function trackedFiles() {
-  return execFileSync('git', ['ls-files', '-z'], { cwd: root, encoding: 'utf8' })
-    .split('\0')
-    .filter(Boolean);
+  return execFileSync('git', ['ls-files', '-z'], { cwd: root, encoding: 'utf8' }).split('\0').filter(Boolean);
 }
 
 function checkIssueForm(name, document, expectedLabel) {
@@ -76,7 +74,7 @@ function checkIssueForm(name, document, expectedLabel) {
   for (const item of document.body) {
     assert(
       ['markdown', 'textarea', 'input', 'dropdown', 'checkboxes'].includes(item.type),
-      `${name}: unsupported field type ${item.type}`,
+      `${name}: unsupported field type ${item.type}`
     );
   }
 }
@@ -87,12 +85,16 @@ function checkRuleset(ruleset) {
   assert.equal(ruleset.enforcement, 'active');
   assert.deepEqual(ruleset.conditions?.ref_name?.include, ['~DEFAULT_BRANCH']);
   assert.deepEqual(ruleset.conditions?.ref_name?.exclude, []);
-  assert.deepEqual(ruleset.bypass_actors, [
-    { actor_id: 5, actor_type: 'RepositoryRole', bypass_mode: 'pull_request' },
-  ]);
+  assert.deepEqual(ruleset.bypass_actors, [{ actor_id: 5, actor_type: 'RepositoryRole', bypass_mode: 'pull_request' }]);
 
   const rules = new Map(ruleset.rules.map((rule) => [rule.type, rule]));
-  for (const type of ['deletion', 'non_fast_forward', 'required_linear_history', 'pull_request', 'required_status_checks']) {
+  for (const type of [
+    'deletion',
+    'non_fast_forward',
+    'required_linear_history',
+    'pull_request',
+    'required_status_checks',
+  ]) {
     assert(rules.has(type), `ruleset: missing ${type}`);
   }
 
@@ -127,8 +129,14 @@ function checkWorkflow(workflow) {
     uses: 'actions/setup-node@820762786026740c76f36085b0efc47a31fe5020',
     with: { 'node-version-file': '.nvmrc', cache: 'npm' },
   });
-  assert(job.steps.some((step) => step.run === 'npm ci'), 'workflow must install the lockfile');
-  assert(job.steps.some((step) => step.run === 'npm run check'), 'workflow must run repository checks');
+  assert(
+    job.steps.some((step) => step.run === 'npm ci'),
+    'workflow must install the lockfile'
+  );
+  assert(
+    job.steps.some((step) => step.run === 'npm run check'),
+    'workflow must run repository checks'
+  );
 }
 
 function checkNoSensitiveCurrentTree(files, contents) {
@@ -161,22 +169,24 @@ try {
   assert.equal(issueConfig.contact_links?.length, 3, 'config.yml must define three contact links');
   assert(
     bugForm.body.some((item) => item.type === 'checkboxes' && item.id === 'checks'),
-    'bug_report.yml must include the redaction confirmation',
+    'bug_report.yml must include the redaction confirmation'
   );
 
   checkRuleset(JSON.parse(await readText('.github/rulesets/main.json')));
   checkWorkflow(parse(await readText('.github/workflows/repository-readiness.yml')));
 
   const files = trackedFiles();
-  const contents = new Map(await Promise.all(files.map(async (relativePath) => [
-    relativePath,
-    await readText(relativePath).catch(() => null),
-  ])));
-  const publicTextFiles = files.filter((relativePath) =>
-    !relativePath.startsWith('docs/superpowers/') && /\.(?:md|json|ya?ml|mjs)$/.test(relativePath),
+  const contents = new Map(
+    await Promise.all(files.map(async (relativePath) => [relativePath, await readText(relativePath).catch(() => null)]))
+  );
+  const publicTextFiles = files.filter(
+    (relativePath) => !relativePath.startsWith('docs/superpowers/') && /\.(?:md|json|ya?ml|mjs)$/.test(relativePath)
   );
   for (const relativePath of publicTextFiles) {
-    assert(!placeholderPattern.test(contents.get(relativePath) ?? ''), `${relativePath} contains an unfinished placeholder`);
+    assert(
+      !placeholderPattern.test(contents.get(relativePath) ?? ''),
+      `${relativePath} contains an unfinished placeholder`
+    );
   }
   checkNoSensitiveCurrentTree(files, contents);
 
