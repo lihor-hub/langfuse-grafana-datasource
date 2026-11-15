@@ -1,5 +1,6 @@
 import type { DataFrame, DataQueryRequest } from '@grafana/data';
 import type { LangfuseObservabilityClient, Observation, ObservationRequest } from '../client/types';
+import { LangfuseClientError } from '../client/errors';
 import type { LangfuseQuery } from '../types';
 import { observationsToLogs, observationsToTable } from '../transformers/observations';
 
@@ -250,19 +251,23 @@ export function buildObservationRequest(
 }
 function cancelled(signal: AbortSignal) {
   if (signal.aborted) {
-    throw new Error('Observation query cancelled.');
+    throw new LangfuseClientError('cancelled', 'Observation query cancelled.');
   }
 }
 function guardPage(page: unknown, limit: number): asserts page is { data: Observation[]; meta: { cursor?: string } } {
   const fail = () => {
-    throw new Error('Incompatible observation response. Check Langfuse v4 compatibility.');
+    throw new LangfuseClientError(
+      'malformed-response',
+      'Incompatible observation response. Check Langfuse v4 compatibility.'
+    );
   };
   if (
     !object(page) ||
     !Array.isArray(page.data) ||
     !object(page.meta) ||
     (page.meta.cursor !== undefined && typeof page.meta.cursor !== 'string') ||
-    page.data.length > limit
+    page.data.length > limit ||
+    (page.data.length === 0 && Boolean(page.meta.cursor))
   ) {
     fail();
   }
@@ -363,13 +368,13 @@ export async function runObservationQuery(
     items.push(...page.data);
     cursor = page.meta.cursor || undefined;
     if (cursor && seen.has(cursor)) {
-      throw new Error('Incompatible observation response: repeated pagination cursor.');
+      throw new LangfuseClientError(
+        'malformed-response',
+        'Incompatible observation response: repeated pagination cursor.'
+      );
     }
     if (cursor) {
       seen.add(cursor);
-    }
-    if (page.data.length === 0) {
-      break;
     }
     if (items.length >= ceiling) {
       truncated = Boolean(cursor);
