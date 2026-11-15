@@ -127,7 +127,7 @@ async function retrieve(url) {
   });
   const timer = setTimeout(() => child.kill('SIGKILL'), 5000);
   try {
-    const [code, signal] = await once(child, 'exit');
+    const [code, signal] = await once(child, 'close');
     assert.equal(signal, null, 'FTP compatibility process must finish without timeout');
     return { code, output, error };
   } finally {
