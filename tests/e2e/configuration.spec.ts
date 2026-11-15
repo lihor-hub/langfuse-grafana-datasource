@@ -67,18 +67,29 @@ test('Save & Test succeeds through the Grafana proxy and redacts the saved secre
   assertSecretRedacted(otherBrowserRequests);
   assertSecretRedacted(laterBrowserRequests);
 
-  const events = await readMockEvents(page, `${proxyPath}/__test/requests`);
-  const observationProbe = events[events.length - 1];
-  expect(events.slice(-2)).toEqual([
-    { method: 'GET', path: '/api/public/projects', query: {}, authAccepted: true, aborted: false },
-    expect.objectContaining({
-      method: 'GET',
-      path: '/api/public/v2/observations',
-      query: expect.objectContaining({ fields: 'core', limit: '1' }),
-      authAccepted: true,
-      aborted: false,
-    }),
+  const proxyRequests = completedBrowserRequests.filter(
+    (request) => request.method === 'GET' && new URL(request.url).pathname.startsWith(`${proxyPath}/api/public/`)
+  );
+  expect(proxyRequests.map((request) => new URL(request.url).pathname.slice(proxyPath.length))).toEqual([
+    '/api/public/projects',
+    '/api/public/v2/observations',
   ]);
+  const probeQuery = Object.fromEntries(new URL(proxyRequests[1].url).searchParams);
+  const events = await readMockEvents(page, `${proxyPath}/__test/requests`);
+  // Other parallel feature tests share the mock; correlate this probe by its own exact time bounds.
+  const observationProbe = events.find(
+    (event) =>
+      event.path === '/api/public/v2/observations' &&
+      event.query.fromStartTime === probeQuery.fromStartTime &&
+      event.query.toStartTime === probeQuery.toStartTime
+  );
+  expect(observationProbe).toEqual({
+    method: 'GET',
+    path: '/api/public/v2/observations',
+    query: { ...probeQuery, fields: 'core', limit: '1' },
+    authAccepted: true,
+    aborted: false,
+  });
   assertObservationProbeWindow(observationProbe, saveAndTestStartedAt, saveAndTestFinishedAt);
 });
 
