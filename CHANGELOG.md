@@ -7,6 +7,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Changed
+
+- Build against Grafana 13.3 frontend packages and React 19. The plugin keeps
+  using the host Grafana's React at runtime; the declared Grafana 12.3 minimum
+  is unchanged and remains subject to the browser test matrix. See
+  [ADR-0002](docs/adr/0002-build-against-react-19.md).
+
 ## 0.2.0 (2026-11-15)
 
 ### Added
