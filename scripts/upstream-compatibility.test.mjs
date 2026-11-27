@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
+import { isAbsolute } from 'node:path';
+import { githubCli, githubEnvironment } from './upstream-gh.mjs';
 import {
   contractSnapshot,
   fingerprint,
@@ -186,6 +188,45 @@ test('scan paginates sparse monorepo channels and fails visibly after its bounde
   await assert.rejects(
     scan(tiny, {}, async () => unrelated),
     /bounded release feed/
+  );
+});
+
+test('GitHub CLI state goes to absolute thread storage without moving authentication or invoking a shell', async () => {
+  const env = {
+    BB_THREAD_STORAGE: '/tmp/test-upstream-storage',
+    XDG_STATE_HOME: '.local/state',
+    XDG_CONFIG_HOME: '/tmp/existing-config',
+  };
+  const safe = githubEnvironment(env);
+  assert.equal(safe.XDG_STATE_HOME, '/tmp/test-upstream-storage/github-state');
+  assert.equal(safe.XDG_CONFIG_HOME, env.XDG_CONFIG_HOME);
+  assert.equal(env.XDG_STATE_HOME, '.local/state');
+  assert.ok(isAbsolute(githubEnvironment({}).XDG_STATE_HOME));
+  assert.ok(isAbsolute(githubEnvironment({ BB_THREAD_STORAGE: 'relative' }).XDG_STATE_HOME));
+  let invoked;
+  const args = ['api', 'repos/example/repo', '--jq', '.name'];
+  const stdout = await githubCli(
+    args,
+    async (command, actualArgs, options) => {
+      invoked = { command, actualArgs, options };
+      return { stdout: 'repo' };
+    },
+    env
+  );
+  assert.equal(stdout, 'repo');
+  assert.equal(invoked.command, 'gh');
+  assert.deepEqual(invoked.actualArgs, args);
+  assert.equal(invoked.options.env.XDG_STATE_HOME, safe.XDG_STATE_HOME);
+  assert.equal(invoked.options.shell, undefined);
+  await assert.rejects(
+    githubCli(
+      args,
+      async () => {
+        throw new Error('authentication unavailable');
+      },
+      env
+    ),
+    /authentication unavailable/
   );
 });
 
