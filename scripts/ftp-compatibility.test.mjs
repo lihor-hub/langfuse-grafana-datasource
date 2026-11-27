@@ -30,6 +30,7 @@ async function fixture(transferHost) {
   let closing = false;
   let dataSocket;
   let payload;
+  let startTransfer;
   function trackSocket(socket) {
     sockets.add(socket);
     socket.on('error', (error) => {
@@ -46,6 +47,7 @@ async function fixture(transferHost) {
       dataSocket = socket;
       payload = host === 'control' ? 'synthetic-loopback-payload' : 'untrusted-advertised-payload';
       trackSocket(socket);
+      startTransfer?.();
     };
   }
   const data = createServer(acceptData('control'));
@@ -97,11 +99,17 @@ async function fixture(transferHost) {
             break;
           case 'RETR':
             socket.write('150 Opening data connection\r\n');
-            assert(dataSocket, 'FTP client must establish the data connection before RETR');
-            dataSocket.end(payload, () => {
-              payloadSent = true;
-              socket.write('226 Transfer complete\r\n');
-            });
+            // TCP callbacks for the control and data sockets may arrive in either
+            // order. Start only once both RETR and the accepted data socket exist.
+            startTransfer = () => {
+              dataSocket.end(payload, () => {
+                payloadSent = true;
+                socket.write('226 Transfer complete\r\n');
+              });
+            };
+            if (dataSocket) {
+              startTransfer();
+            }
             break;
           case 'QUIT':
             socket.end('221 Goodbye\r\n');
