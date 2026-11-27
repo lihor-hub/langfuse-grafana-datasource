@@ -142,7 +142,7 @@ test('histograms supply real bucket tuples with time only when requested; discov
 });
 
 test('real-host smoke runs against synthetic HTTP without printing payloads or credentials', async () => {
-  const child = spawn(process.execPath, ['--test', 'tests/smoke/real-langfuse.test.mjs'], {
+  const child = spawn(process.execPath, ['--test', '--test-reporter=tap', 'tests/smoke/real-langfuse.test.mjs'], {
     env: {
       ...process.env,
       NODE_TEST_CONTEXT: undefined,
@@ -159,7 +159,7 @@ test('real-host smoke runs against synthetic HTTP without printing payloads or c
   child.stderr.on('data', (chunk) => {
     output += chunk;
   });
-  const [code] = await once(child, 'exit');
+  const [code] = await once(child, 'close');
   assert.equal(code, 0);
   assert.match(output, /# pass 1/);
   assert(!/synthetic-public|synthetic-secret|observation-e2e|demo-span/.test(output));
@@ -216,7 +216,7 @@ test('real-host smoke with malformed URL does not print environment values', asy
   child.stderr.on('data', (chunk) => {
     output += chunk;
   });
-  const [code] = await once(child, 'exit');
+  const [code] = await once(child, 'close');
   assert.notEqual(code, 0);
   assert(!output.includes('malformed-synthetic-private-origin'));
 });

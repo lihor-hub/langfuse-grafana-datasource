@@ -1,8 +1,25 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
+import { createRequire } from 'node:module';
 import { createServer } from 'node:net';
 import { test } from 'node:test';
+import { pathToFileURL } from 'node:url';
+
+// Resolve the real FTP adapter through each remaining proxy-tooling chain.
+// sign-plugin v4 no longer supplies a root-hoisted get-uri dependency.
+const require = createRequire(import.meta.url);
+const markdownEntry = require.resolve('markdown-link-check');
+const callers = [
+  ['markdown-link-check', markdownEntry],
+  ['link-check', createRequire(markdownEntry).resolve('link-check')],
+].map(([name, entry]) => {
+  let callerRequire = createRequire(entry);
+  for (const dependency of ['proxy-agent', 'pac-proxy-agent']) {
+    callerRequire = createRequire(callerRequire.resolve(dependency));
+  }
+  return { name, adapter: pathToFileURL(callerRequire.resolve('get-uri')).href };
+});
 
 async function fixture(transferHost) {
   const sockets = new Set();
@@ -118,7 +135,7 @@ async function fixture(transferHost) {
   };
 }
 
-async function retrieve(url) {
+async function retrieve(url, adapter) {
   const child = spawn(
     process.execPath,
     [
@@ -126,11 +143,12 @@ async function retrieve(url) {
       '--input-type=module',
       '-e',
       `
-    import { getUri } from 'get-uri';
+    const { getUri } = await import(process.argv[2]);
     const stream = await getUri(process.argv[1]);
     for await (const chunk of stream) process.stdout.write(chunk);
   `,
       url,
+      adapter,
     ],
     { stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, NODE_TEST_CONTEXT: undefined } }
   );
@@ -152,33 +170,35 @@ async function retrieve(url) {
   }
 }
 
-test('real get-uri retrieves FTP data from the same loopback host', { timeout: 10000 }, async () => {
-  const server = await fixture('127.0.0.1');
-  try {
-    const result = await retrieve(server.url);
-    assert.equal(result.code, 0, result.error);
-    assert.equal(result.output, 'synthetic-loopback-payload');
-    assert.equal(server.connections.control, 1);
-    assert(server.commands.includes('RETR'));
-  } finally {
-    await server.close();
-  }
-});
-
-test(
-  'real get-uri cannot contact an advertised different loopback transfer host by default',
-  { timeout: 10000 },
-  async () => {
-    const server = await fixture('127.0.0.2');
+for (const { name, adapter } of callers) {
+  test(`${name}: real get-uri retrieves FTP data from the same loopback host`, { timeout: 10000 }, async () => {
+    const server = await fixture('127.0.0.1');
     try {
-      const result = await retrieve(server.url);
-      assert(server.commands.includes('PASV'), 'must reach passive transfer negotiation');
+      const result = await retrieve(server.url, adapter);
       assert.equal(result.code, 0, result.error);
-      assert.equal(result.output, 'synthetic-loopback-payload', 'only the control-host listener may supply data');
-      assert.equal(server.connections.advertised, 0, 'advertised host must receive no connection');
-      assert.equal(server.connections.control, 1, 'data transfer must stay pinned to the control host');
+      assert.equal(result.output, 'synthetic-loopback-payload');
+      assert.equal(server.connections.control, 1);
+      assert(server.commands.includes('RETR'));
     } finally {
       await server.close();
     }
-  }
-);
+  });
+
+  test(
+    `${name}: real get-uri cannot contact an advertised different loopback transfer host by default`,
+    { timeout: 10000 },
+    async () => {
+      const server = await fixture('127.0.0.2');
+      try {
+        const result = await retrieve(server.url, adapter);
+        assert(server.commands.includes('PASV'), 'must reach passive transfer negotiation');
+        assert.equal(result.code, 0, result.error);
+        assert.equal(result.output, 'synthetic-loopback-payload', 'only the control-host listener may supply data');
+        assert.equal(server.connections.advertised, 0, 'advertised host must receive no connection');
+        assert.equal(server.connections.control, 1, 'data transfer must stay pinned to the control host');
+      } finally {
+        await server.close();
+      }
+    }
+  );
+}

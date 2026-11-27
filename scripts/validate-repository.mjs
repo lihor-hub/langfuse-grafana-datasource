@@ -158,7 +158,8 @@ try {
 
   const license = await readText('LICENSE');
   assert.equal(createHash('sha256').update(license).digest('hex'), licenseDigest, 'LICENSE must match Apache-2.0');
-  assert.equal((await readText('.nvmrc')).trim(), '22', '.nvmrc must select Node 22');
+  assert.equal((await readText('.nvmrc')).trim(), '24', '.nvmrc must select Node 24');
+  assert.equal(JSON.parse(await readText('package.json')).engines.node, '>=24.15.0 <25');
 
   const bugForm = parse(await readText(`${issuesDirectory}/bug_report.yml`));
   const featureForm = parse(await readText(`${issuesDirectory}/feature_request.yml`));

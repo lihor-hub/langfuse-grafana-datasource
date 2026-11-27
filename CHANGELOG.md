@@ -13,6 +13,9 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 - Replace the generic dashboard icon with the unmodified official Langfuse color
   mark for both plugin icon sizes, with source attribution and trademark notices.
+- Upgrade the development signing tool to `@grafana/sign-plugin` v4 and move
+  development/CI to Node.js 24.15.0 or newer within 24.x for its native proxy
+  support. Grafana and Langfuse runtime compatibility are unchanged.
 
 - Build against Grafana 13.3 frontend packages and React 19. The plugin keeps
   using the host Grafana's React at runtime; the declared Grafana 12.3 minimum

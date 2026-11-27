@@ -77,8 +77,11 @@ Stop if any documented environment lacks passing evidence.
 
 ## Gate 3: native quality checks
 
-Use scripts from the candidate's locked `package.json`. Do not substitute
-ad-hoc commands for a missing release gate.
+Use Node.js 24.15.0 or newer within 24.x (`nvm use` reads `.nvmrc`) and
+scripts from the candidate's locked `package.json`. `@grafana/sign-plugin` v4
+uses Node's native proxy support and no longer supports the former Node 22
+development toolchain. This does not change the Grafana host requirement.
+Do not substitute ad-hoc commands for a missing release gate.
 
 ```bash
 npm ci
