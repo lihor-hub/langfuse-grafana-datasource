@@ -15,6 +15,13 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   using the host Grafana's React at runtime; the declared Grafana 12.3 minimum
   is unchanged and remains subject to the browser test matrix. See
   [ADR-0002](docs/adr/0002-build-against-react-19.md).
+- Make the catalog README user-facing by removing development instructions,
+  pre-release notices, project/release status and maintainer-only sections.
+
+### Fixed
+
+- Ignore empty Query kind and observation Log body Combobox selections instead
+  of crashing the editor; preserve the current selection and query drafts.
 
 ## 0.2.0 (2026-11-15)
 

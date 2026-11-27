@@ -86,6 +86,23 @@ it('switches kinds without discarding canonical or invalid inactive drafts', () 
   expect(onChange).toHaveBeenCalledWith({ ...query, kind: 'scores' });
 });
 
+it.each(['Score', 'no matching query kind'])('ignores an empty Query kind selection for "%s"', (search) => {
+  const query: LangfuseQuery = {
+    refId: 'A',
+    kind: 'observations',
+    metricsQuery: DEFAULT_METRICS_QUERY,
+    observationsQuery: '{',
+    scoresQuery: '{"name":"synthetic"}',
+  };
+  const { onChange, onRunQuery } = setup(query);
+  const input = screen.getByRole('combobox', { name: 'Query kind' });
+  fireEvent.change(input, { target: { value: search } });
+  fireEvent.keyDown(input, { key: 'Enter' });
+  expect(onChange).not.toHaveBeenCalled();
+  expect(onRunQuery).not.toHaveBeenCalled();
+  expect(screen.getByRole('textbox', { name: 'Observation query (JSON)' })).toHaveValue('{');
+});
+
 it.each([
   {
     kind: 'metrics' as const,

@@ -44,7 +44,11 @@ export function QueryEditor(props: QueryEditorProps<DataSource, LangfuseQuery, L
           aria-label="Query kind"
           value={query.kind ?? 'metrics'}
           options={kinds}
-          onChange={({ value }) => onChange({ ...query, kind: value })}
+          onChange={(option) => {
+            if (option) {
+              onChange({ ...query, kind: option.value });
+            }
+          }}
         />
       </Field>
       {query.kind === 'observations' ? (

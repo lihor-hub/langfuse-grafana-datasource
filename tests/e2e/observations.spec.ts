@@ -95,6 +95,16 @@ test('Explore defaults observations to logs and supports body and table switchin
   const editor = explorePage.getQueryEditorRow('A');
   await expect(editor.getByRole('button', { name: 'Logs', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await expect(page.getByText('Synthetic output', { exact: false }).first()).toBeVisible();
+  // Enter can submit no option, even for a partial label such as "Score".
+  const kind = editor.getByRole('combobox', { name: 'Query kind', exact: true });
+  await kind.fill('Score');
+  await kind.press('Enter');
+  await expect(editor.getByRole('button', { name: 'Logs', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  const body = editor.getByRole('combobox', { name: 'Log body', exact: true });
+  await body.fill('status');
+  await body.press('Enter');
+  await expect(editor.getByRole('button', { name: 'Logs', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByText('An unexpected error happened', { exact: false })).not.toBeVisible();
   await editor.getByRole('button', { name: 'Table', exact: true }).click();
   await expect(editor.getByRole('button', { name: 'Table', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await editor.getByRole('button', { name: 'Advanced JSON', exact: true }).click();

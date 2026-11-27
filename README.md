@@ -4,23 +4,17 @@ A frontend-only, read-only Grafana data source for Langfuse v4 observability
 data. Langfuse API credentials are stored by Grafana and attached server-side
 by the Grafana data proxy; the browser plugin receives only the proxy URL.
 
-> [!IMPORTANT]
-> **Pre-release:** the plugin is not yet published to the Grafana catalog.
-> Development and verification continue before the first supported release.
-
 ## Requirements
 
 - Grafana 12.3.0 or newer
 - Langfuse v4 with the Metrics v2, Observations v2 and Scores v3 read APIs
-- Node.js 22.22.2 or newer within the 22.x release line for development
 
 ## Platform observability dashboard
 
 The [example dashboard](https://github.com/lihor-hub/langfuse-grafana-datasource/blob/main/provisioning/dashboards/platform-observability.json)
 shows observation volume, generation count, model latency, cost, tokens,
 model mix, error counts and numeric evaluation trends. Operator explanations
-are included inside Grafana. The development stack provisions it with synthetic
-data in the **Langfuse** folder.
+are included inside Grafana.
 
 Read the [dashboard guide](https://github.com/lihor-hub/langfuse-grafana-datasource/blob/main/docs/platform-observability-dashboard.md)
 for import instructions, interpretation, query examples and limitations.
@@ -47,44 +41,11 @@ metrics; new Explore queries default to observation logs. Switching query kinds
 preserves inactive JSON drafts and saved variable references.
 
 See the [query and installation guides](https://github.com/lihor-hub/langfuse-grafana-datasource/tree/main/docs)
-for capabilities, examples, field groups, limits and development installation.
+for setup instructions, capabilities, examples, field groups and limits.
 Managed alerting, streaming, annotations and write operations are not supported.
 The plugin never retries queries automatically. Retry-After is displayed only
 when Grafana exposes the header; otherwise the error states that timing is
-unavailable. Integrated browser compatibility and catalog review remain release
-gates, not implied by the implemented feature list.
-
-## Development
-
-```bash
-npm ci
-npm run lint
-npm run typecheck
-npm test -- --runInBand
-npm run build
-```
-
-To run the Grafana end-to-end environment, supply runtime-only credentials and
-start the generated Compose stack:
-
-```bash
-export LANGFUSE_E2E_PUBLIC_KEY=pk-e2e
-export LANGFUSE_E2E_SECRET="$(openssl rand -hex 32)"
-npm run server
-npm run e2e
-```
-
-Do not commit those values or place them in provisioning files.
-
-## Project status
-
-The plugin implementation is in pre-release verification. There is currently
-no catalog listing, supported upgrade path, or compatibility guarantee.
-
-Issues are welcome for design feedback, use cases, and defects found while the
-project is being prepared. Pull requests are paused until the maintainer has
-verified and published the first release. See
-[Contributing](https://github.com/lihor-hub/langfuse-grafana-datasource/blob/main/CONTRIBUTING.md).
+unavailable.
 
 ## Security model
 
@@ -103,17 +64,6 @@ Langfuse authorization is independently restricted. Report potential security
 problems through the private process in
 [Security](https://github.com/lihor-hub/langfuse-grafana-datasource/blob/main/SECURITY.md).
 
-## Planned compatibility
-
-| Component               | Planned baseline             |
-| ----------------------- | ---------------------------- |
-| Grafana                 | 12.3.0 or newer              |
-| Langfuse                | Server v4                    |
-| Node.js for development | 22.22.2 or newer within 22.x |
-
-The release documentation will replace planned compatibility with tested
-compatibility evidence before publication.
-
 ## Getting help and sharing feedback
 
 - Review [Support](https://github.com/lihor-hub/langfuse-grafana-datasource/blob/main/SUPPORT.md)
@@ -122,17 +72,6 @@ compatibility evidence before publication.
   for reproducible defects and focused feature requests.
 - Do not put credentials, private hostnames, or customer observability data in
   an issue.
-
-## Maintainers
-
-Privileged publication work is separated from ordinary contributor guidance:
-
-- [Release runbook](https://github.com/lihor-hub/langfuse-grafana-datasource/blob/main/docs/maintainers/releasing.md)
-- [Grafana catalog launch](https://github.com/lihor-hub/langfuse-grafana-datasource/blob/main/docs/maintainers/grafana-catalog-launch.md)
-- [GitHub repository settings](https://github.com/lihor-hub/langfuse-grafana-datasource/blob/main/docs/maintainers/github-settings.md)
-
-These documents prepare future actions; they do not authorize a release,
-visibility change, ruleset activation, signing operation, or catalog submission.
 
 ## License and trademarks
 
