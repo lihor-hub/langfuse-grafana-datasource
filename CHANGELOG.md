@@ -9,6 +9,14 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## Unreleased
 
+### Added
+
+- Add locally runnable Grafana/Langfuse stable-release and API-contract watches,
+  offline planner/provisioning regressions, and a bounded Pi maintenance skill.
+  A weekly BB schedule reuses existing authentication and proposes tested
+  compatibility PRs without automatic merging, signing or releases. Activation
+  requires the setup to be merged to main; setup can be provisioned paused first.
+
 ## 0.2.1 (2026-11-27)
 
 ### Changed
