@@ -14,6 +14,8 @@ export const bootstrapFiles = [
   '.github/upstream-compatibility.json',
   '.github/upstream-compatibility-baseline.json',
   'scripts/upstream-compatibility.mjs',
+  'scripts/upstream-gh.mjs',
+  'docs/maintainers/upstream-compatibility.md',
   'scripts/setup-upstream-automation.mjs',
   'package.json',
 ];
