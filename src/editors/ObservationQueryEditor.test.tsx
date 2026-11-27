@@ -7,7 +7,18 @@ import { ObservationQueryEditor } from './ObservationQueryEditor';
 const canvas = jest.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({
   measureText: () => ({ width: 100 }),
 } as unknown as CanvasRenderingContext2D);
-afterAll(() => canvas.mockRestore());
+const originalObserver = globalThis.IntersectionObserver;
+beforeAll(() => {
+  globalThis.IntersectionObserver = jest.fn().mockReturnValue({
+    observe: jest.fn(),
+    unobserve: jest.fn(),
+    disconnect: jest.fn(),
+  });
+});
+afterAll(() => {
+  canvas.mockRestore();
+  globalThis.IntersectionObserver = originalObserver;
+});
 function setup(
   query = { refId: 'A' } as { refId: string; observationsQuery?: string; editorMode?: 'guided' | 'advanced' },
   app = CoreApp.Dashboard
@@ -43,6 +54,38 @@ it.each([CoreApp.Dashboard, CoreApp.Explore])(
     });
   }
 );
+it.each(['status', 'no matching log body'])(
+  'ignores an empty Log body selection for "%s" without changing the observation query',
+  (search) => {
+    const { onChange, onRunQuery } = setup({
+      refId: 'A',
+      observationsQuery: '{"format":"logs","logBody":"statusMessage","traceId":"synthetic"}',
+    });
+    const input = screen.getByRole('combobox', { name: 'Log body' });
+    fireEvent.change(input, { target: { value: search } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(onChange).not.toHaveBeenCalled();
+    expect(onRunQuery).not.toHaveBeenCalled();
+    expect(screen.getByRole('textbox', { name: 'Trace ID' })).toHaveValue('synthetic');
+  }
+);
+
+it('updates Log body for a valid selection and preserves the other observation settings', () => {
+  const { onChange } = setup({
+    refId: 'A',
+    observationsQuery: '{"format":"logs","traceId":"synthetic"}',
+  });
+  const input = screen.getByRole('combobox', { name: 'Log body' });
+  fireEvent.keyDown(input, { key: 'ArrowDown' });
+  fireEvent.keyDown(input, { key: 'End' });
+  fireEvent.keyDown(input, { key: 'Enter' });
+  expect(JSON.parse(onChange.mock.calls[0][0].observationsQuery)).toEqual({
+    format: 'logs',
+    traceId: 'synthetic',
+    logBody: 'output',
+  });
+});
+
 it('validates interpolated values while displaying and preserving canonical variable references', () => {
   const query = {
     refId: 'A',

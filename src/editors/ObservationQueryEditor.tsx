@@ -99,7 +99,11 @@ export function ObservationQueryEditor({
                 aria-label="Log body"
                 value={definition.logBody ?? 'name'}
                 options={['name', 'statusMessage', 'input', 'output'].map((value) => ({ label: value, value }))}
-                onChange={(option) => update({ logBody: option.value as ObservationQueryDefinition['logBody'] })}
+                onChange={(option) => {
+                  if (option) {
+                    update({ logBody: option.value as ObservationQueryDefinition['logBody'] });
+                  }
+                }}
               />
             </Field>
           )}
