@@ -78,6 +78,11 @@ problems through the private process in
 Licensed under the
 [Apache License 2.0](https://github.com/lihor-hub/langfuse-grafana-datasource/blob/main/LICENSE).
 
+The plugin uses the unmodified official Langfuse icon from the
+[Langfuse brand asset library](https://langfuse.com/brand). The icon remains a
+trademark of its owner and is not included in this project's Apache-2.0 license
+grant.
+
 Grafana is a trademark of Grafana Labs. Langfuse is a trademark of its
 respective owner. This independent community project is not affiliated with,
 endorsed by, or sponsored by Grafana Labs or Langfuse.

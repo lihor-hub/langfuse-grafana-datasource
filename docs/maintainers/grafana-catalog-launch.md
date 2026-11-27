@@ -95,8 +95,17 @@ Provide meaningful `alt` text or catalog captions. Review the full-resolution
 files for tokens, private URLs, personal data, real trace IDs, and customer
 content before committing them.
 
-The logo should be an original project mark. Do not combine or alter Grafana or
-Langfuse trademarks in a way that implies an official joint product.
+The plugin uses the unmodified official Langfuse color icon from the
+[Langfuse brand asset library](https://langfuse.com/brand), following its guidance
+for integrations. Source: [official SVG](https://langfuse.com/brand-assets/icon/color/langfuse-icon.svg).
+The asset is stored at `src/img/logo.svg` and used for both manifest icon sizes.
+Its SHA-256 is
+`daeef880d58644fab4fd9ba5d292086c6d69756a39cff94d510f8ddc35312bf3`;
+the release-tool tests pin these bytes. Keep the upstream artwork unchanged:
+do not recolor, crop, combine it with a Grafana mark, or imply sponsorship or
+endorsement. Preserve the attribution and independent-community-project notice
+in `NOTICE` and the README. When intentionally refreshing the official asset,
+review the current upstream brand guidance and update the checksum and test.
 
 ## Catalog-page content
 

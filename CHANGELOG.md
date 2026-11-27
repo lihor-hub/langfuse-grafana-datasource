@@ -11,6 +11,9 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ### Changed
 
+- Replace the generic dashboard icon with the unmodified official Langfuse color
+  mark for both plugin icon sizes, with source attribution and trademark notices.
+
 - Build against Grafana 13.3 frontend packages and React 19. The plugin keeps
   using the host Grafana's React at runtime; the declared Grafana 12.3 minimum
   is unchanged and remains subject to the browser test matrix. See
