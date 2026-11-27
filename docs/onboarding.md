@@ -17,7 +17,8 @@ Use Explore to test individual observations/logs and score queries.
 - Langfuse **server v4**; v3 and legacy endpoints are not supported.
 - Grafana **12.3 or newer**. Use the exact minimum/current images verified by the
   release candidate's CI matrix, not an untested interpretation of the floor.
-- Development: Node 22 (see `.nvmrc`), npm, Docker Compose, and `zip` for packaging.
+- Development: Node 24.15.0 or newer within 24.x (see `.nvmrc`), npm,
+  Docker Compose, and `zip` for packaging.
 
 For a development installation, unpack the validated archive into Grafana's
 plugin directory. The archive has one root, `lihorhub-langfuse-datasource`.

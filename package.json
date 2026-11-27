@@ -83,7 +83,7 @@
     "yaml": "2.9.0"
   },
   "engines": {
-    "node": ">=22.22.2 <23"
+    "node": ">=24.15.0 <25"
   },
   "overrides": {
     "get-uri": {

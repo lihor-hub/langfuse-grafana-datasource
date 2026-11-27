@@ -229,3 +229,26 @@ Browser compatibility results belong to the PR's real Grafana matrix; local
 checks and source-aware validation do not replace browser or clean-install
 acceptance. The existing Minikube installation has not been replaced by this
 integrated feature branch.
+
+## Signing-tool v4 migration
+
+`@grafana/sign-plugin` v4 replaces its proxy-agent dependency with Node's native
+proxy support. Its upstream migration guide requires Node 24.15.0 or later;
+this repository now selects Node 24 in `.nvmrc` and requires
+`>=24.15.0 <25` in `package.json`. CI and API-compatibility jobs read `.nvmrc`
+rather than maintaining separate Node-major settings. This supersedes the
+historical Node 22 development baseline above, not the Grafana or Langfuse
+runtime requirements.
+
+Removing the signing tool's proxy-agent chain also removes the root-hoisted
+`get-uri` package. The link-checking tools still contain two real proxy chains:
+`markdown-link-check → proxy-agent → pac-proxy-agent → get-uri` and
+`link-check → proxy-agent → pac-proxy-agent → get-uri`. The FTP regression tests
+resolve each adapter through its actual caller with `createRequire`, so the
+suite no longer depends on npm hoisting. Both same-host transfers and rejection
+of an advertised alternate data host are tested for each chain. Missing adapters
+fail the tests; no security test is skipped and no obsolete dependency is
+reintroduced solely for testing. The exact `basic-ftp: 6.2.6` override remains.
+
+Signing, credential use, release publication and catalog submission remain
+separate privileged actions. Toolchain migration does not authorize any of them.
