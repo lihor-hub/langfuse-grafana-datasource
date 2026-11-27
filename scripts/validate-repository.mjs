@@ -126,7 +126,7 @@ function checkWorkflow(workflow) {
     with: { 'fetch-depth': 0, 'persist-credentials': false },
   });
   assert.deepEqual(job.steps[1], {
-    uses: 'actions/setup-node@820762786026740c76f36085b0efc47a31fe5020',
+    uses: 'actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1',
     with: { 'node-version-file': '.nvmrc', cache: 'npm' },
   });
   assert(
