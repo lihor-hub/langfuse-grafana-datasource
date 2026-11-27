@@ -1,11 +1,9 @@
 import { createHash } from 'node:crypto';
-import { execFile } from 'node:child_process';
 import { readFile, writeFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
-import { parseArgs, promisify } from 'node:util';
+import { parseArgs } from 'node:util';
 import semver from 'semver';
-
-const execute = promisify(execFile);
+import { githubCli } from './upstream-gh.mjs';
 const root = new URL('../', import.meta.url);
 const sha = /^[a-f\d]{40}$/;
 const tracks = ['langfuse', 'grafana'];
@@ -98,11 +96,7 @@ export function contractSnapshot(tree, source, contract) {
 }
 
 async function github(endpoint) {
-  const { stdout } = await execute('gh', ['api', '--method', 'GET', endpoint], {
-    timeout: 60_000,
-    maxBuffer: 32 * 1024 * 1024,
-  });
-  return JSON.parse(stdout);
+  return JSON.parse(await githubCli(['api', '--method', 'GET', endpoint]));
 }
 
 export async function scan(config, pkg, api = github) {
@@ -235,12 +229,16 @@ async function main() {
   if (positionals.length === 1 && positionals[0] === 'scan' && !values.input && !values.all) {
     result = await scan(config, JSON.parse(await readFile(new URL('package.json', root))));
   } else if (positionals.length === 1 && positionals[0] === 'plan' && values.input) {
-    const { stdout } = await execute(
-      'gh',
-      ['api', '--method', 'GET', '--paginate', '--slurp', `repos/${config.repository}/pulls?state=open&per_page=100`],
-      { timeout: 60_000, maxBuffer: 16 * 1024 * 1024 }
+    const pages = JSON.parse(
+      await githubCli([
+        'api',
+        '--method',
+        'GET',
+        '--paginate',
+        '--slurp',
+        `repos/${config.repository}/pulls?state=open&per_page=100`,
+      ])
     );
-    const pages = JSON.parse(stdout);
     if (!Array.isArray(pages) || pages.some((page) => !Array.isArray(page))) {
       throw new Error('Invalid PR pagination');
     }

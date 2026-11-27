@@ -56,10 +56,21 @@ track or label an untested release supported. If nothing relevant changed,
 report the reason in BB without opening a version-only or baseline-only PR;
 future runs can consult previous automation runs to avoid repeating research.
 
+The initial read-only audit identified an existing empty-page/cursor mismatch
+with the released Observations v2 contract. It is tracked separately in
+[issue #65](https://github.com/lihor-hub/langfuse-grafana-datasource/issues/65),
+including the necessary finite-request-budget decision. Installing this
+maintenance job does not resolve that runtime issue.
+
 ## Run locally
 
 Use Node from `.nvmrc`, `npm ci`, and an authenticated `gh` with read access to
-public upstreams. No Langfuse or Grafana credentials are needed.
+public upstreams. No Langfuse or Grafana credentials are needed. Scans and
+plans invoke `scripts/upstream-gh.mjs`, which keeps GitHub CLI device state in
+absolute BB thread storage (or the user's normal absolute state directory
+outside BB), without moving existing authentication. During agent runs use
+`node scripts/upstream-gh.mjs` instead of bare `gh` for other GitHub operations,
+so relative XDG defaults do not create untracked state inside a fresh worktree.
 
 ```sh
 npm run upstream:scan -- --output /tmp/upstream-snapshot.json

@@ -17,6 +17,12 @@ unexpected remote, dirty source or another active maintenance run. Do not touch
 another thread's checkout. Inspect prior automation runs before repeating work;
 never create replacement workers or schedule additional automations.
 
+For GitHub operations use `node scripts/upstream-gh.mjs` in place of bare `gh`
+(for example `node scripts/upstream-gh.mjs api repos/OWNER/REPO/pulls`). The
+wrapper keeps CLI device state in absolute thread storage while preserving
+existing authentication. Do not copy credentials or inspect device-state files.
+The sensor and planner already use this wrapper internally.
+
 Completion: actual base commit, host/provider availability, GitHub access and
 concurrency state are known. Never print credentials or auth configuration.
 
