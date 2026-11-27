@@ -1,10 +1,23 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { packagePlugin } from './package-plugin.mjs';
 import { assertSecretSafe } from './secret-scan.mjs';
+
+test('both plugin icons use the unmodified official Langfuse color mark', async () => {
+  const manifest = JSON.parse(await readFile('src/plugin.json', 'utf8'));
+  assert.deepEqual(manifest.info.logos, { small: 'img/logo.svg', large: 'img/logo.svg' });
+  // Official asset: https://langfuse.com/brand-assets/icon/color/langfuse-icon.svg
+  // Pin its bytes so accidental edits or scaffold-logo replacements are caught offline.
+  const logo = await readFile('src/img/logo.svg');
+  assert.equal(
+    createHash('sha256').update(logo).digest('hex'),
+    'daeef880d58644fab4fd9ba5d292086c6d69756a39cff94d510f8ddc35312bf3'
+  );
+});
 
 test('secret scanning rejects credentials but accepts environment provisioning', () => {
   assert.doesNotThrow(() => assertSecretSafe('const settings = { basicAuthPassword: props.secret };', 'module.js'));

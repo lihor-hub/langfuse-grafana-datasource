@@ -4,6 +4,12 @@ Copyright 2026 Langfuse Grafana Data Source contributors
 This product includes software developed by the Langfuse Grafana Data Source
 contributors and is licensed under the Apache License, Version 2.0.
 
+The plugin icon is the unmodified official Langfuse color icon, obtained from
+https://langfuse.com/brand-assets/icon/color/langfuse-icon.svg.
+Brand assets and usage guidance: https://langfuse.com/brand.
+The Langfuse logo remains a trademark of its owner and is not covered by this
+project's Apache-2.0 license grant.
+
 Grafana is a trademark of Grafana Labs. Langfuse is a trademark of its
 respective owner. This independent community project is not affiliated with,
 endorsed by, or sponsored by Grafana Labs or Langfuse.
