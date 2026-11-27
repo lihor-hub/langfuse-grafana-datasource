@@ -23,5 +23,7 @@ jobs:
           cache: npm
       - name: Install locked dependencies
         run: npm ci
+      - name: Test upstream maintenance tooling offline
+        run: npm run test:upstream
       - name: Validate repository
         run: npm run check

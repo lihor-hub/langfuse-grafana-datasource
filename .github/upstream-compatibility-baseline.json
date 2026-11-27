@@ -1,0 +1,136 @@
+{
+  "schemaVersion": 1,
+  "scannedAt": "2026-11-27T18:28:54.627Z",
+  "installed": {
+    "@grafana/data": "13.3.1",
+    "@grafana/i18n": "13.3.1",
+    "@grafana/runtime": "13.3.1",
+    "@grafana/ui": "13.3.1",
+    "@grafana/schema": "13.3.1",
+    "@langfuse/core": "5.10.0",
+    "@grafana/eslint-config": "^10.0.0",
+    "@grafana/plugin-e2e": "3.10.0",
+    "@grafana/sign-plugin": "^4.0.0",
+    "@grafana/tsconfig": "^2.2.0"
+  },
+  "sources": {
+    "grafana": {
+      "track": "grafana",
+      "repository": "grafana/grafana",
+      "tag": "v13.3.2",
+      "commit": "b8e90ef2a99c8629339e7233a7a813456d87c075",
+      "url": "https://github.com/grafana/grafana/releases/tag/v13.3.2",
+      "fingerprint": "76c270fa67d81be25c819b80b37dca8504f7c806c90403976668ef8d6c49d2ad"
+    },
+    "create-plugin": {
+      "track": "grafana",
+      "repository": "grafana/plugin-tools",
+      "tag": "@grafana/create-plugin@10.0.0",
+      "commit": "e5790536fafc68f53961c53374cd1b157b2c4a21",
+      "url": "https://github.com/grafana/plugin-tools/releases/tag/%40grafana/create-plugin%4010.0.0",
+      "fingerprint": "3d7dc90682f2eed764ec34a5863fb76ccf98ea8e580ea2ddfc33f70621867074"
+    },
+    "plugin-e2e": {
+      "track": "grafana",
+      "repository": "grafana/plugin-tools",
+      "tag": "@grafana/plugin-e2e@4.1.1",
+      "commit": "c0e55d10683f7ebe153eabe299dad8a190793d75",
+      "url": "https://github.com/grafana/plugin-tools/releases/tag/%40grafana/plugin-e2e%404.1.1",
+      "fingerprint": "72376c835ef407aec114a65e9fd2eb114aafcfb22e95342a9d6168b3574ef309"
+    },
+    "sign-plugin": {
+      "track": "grafana",
+      "repository": "grafana/plugin-tools",
+      "tag": "@grafana/sign-plugin@4.0.0",
+      "commit": "18299086811cba5aa198e66e2d287fdd29d5876e",
+      "url": "https://github.com/grafana/plugin-tools/releases/tag/%40grafana/sign-plugin%404.0.0",
+      "fingerprint": "d35419841819410416f5a72f205086d4adcdbfc3e36392c1a205470788a2181f"
+    },
+    "plugin-validator": {
+      "track": "grafana",
+      "repository": "grafana/plugin-validator",
+      "tag": "plugin-validator/v0.57.0",
+      "commit": "5a53e3bcd08d87a6dbc883f730b6f8c25f19100d",
+      "url": "https://github.com/grafana/plugin-validator/releases/tag/plugin-validator/v0.57.0",
+      "fingerprint": "56cad497375933ed48f6e06c5b5c7d6277315d9f52f607c5c3094045773b2033"
+    },
+    "plugin-tools": {
+      "track": "grafana",
+      "repository": "grafana/plugin-tools",
+      "tag": "@grafana/eslint-config@10.0.2",
+      "commit": "e5790536fafc68f53961c53374cd1b157b2c4a21",
+      "url": "https://github.com/grafana/plugin-tools/releases/tag/%40grafana/eslint-config%4010.0.2",
+      "fingerprint": "bec51018cf90341212dcebd0a5657968c5ef5eccfa2e75d4cec825f67c22f234"
+    },
+    "plugin-actions": {
+      "track": "grafana",
+      "repository": "grafana/plugin-actions",
+      "tag": "build-plugin/v2.0.2",
+      "commit": "567c1dd5fdbfd9439d17dec51b056c4a2d60bd19",
+      "url": "https://github.com/grafana/plugin-actions/releases/tag/build-plugin/v2.0.2",
+      "fingerprint": "6fac3a4ae82dd0deed7731ac13ff878b82a3e2fc6e06ec33c1cbaaec98d5db19"
+    },
+    "langfuse": {
+      "track": "langfuse",
+      "repository": "langfuse/langfuse",
+      "tag": "v4.88.0",
+      "commit": "9eea2e60a1222936d78a28a0f0b2cafe690fc2a5",
+      "url": "https://github.com/langfuse/langfuse/releases/tag/v4.88.0",
+      "fingerprint": "bc8f808473339027057b888072e0219454ec492fecc23ae17dc6b092d2d41d03"
+    },
+    "langfuse-js": {
+      "track": "langfuse",
+      "repository": "langfuse/langfuse-js",
+      "tag": "v6.1.1",
+      "commit": "7ba77b7c8517829b1e5dc2985de851fa3e6f89ec",
+      "url": "https://github.com/langfuse/langfuse-js/releases/tag/v6.1.1",
+      "fingerprint": "7f5641b6916be8d9441d00494fe038eb4828c4fb314b12dd0f1df44de9a0c7fa"
+    },
+    "langfuse-contracts": {
+      "track": "langfuse",
+      "repository": "langfuse/langfuse",
+      "commit": "9eea2e60a1222936d78a28a0f0b2cafe690fc2a5",
+      "url": "https://github.com/langfuse/langfuse/tree/9eea2e60a1222936d78a28a0f0b2cafe690fc2a5/fern/apis/server/definition/",
+      "files": {
+        "fern/apis/server/definition/annotation-queues.yml": "be60e5fcce2607bf1857bcfa32d64026ea136ed0",
+        "fern/apis/server/definition/api.yml": "f36329d7b6f24bffb56504d2dcd5f7018af00ee9",
+        "fern/apis/server/definition/blob-storage-integrations.yml": "4259643b38f8311f440e5a752fe5815207be09db",
+        "fern/apis/server/definition/comments.yml": "0378536456bab1ccd8e62dcbbc878b724f514efb",
+        "fern/apis/server/definition/commons.yml": "82790afc3cb4a14674146bee5f6527be63a53e0c",
+        "fern/apis/server/definition/dataset-items.yml": "6f2c8c74415bea28257e3649ae9510e1a0cb1aa8",
+        "fern/apis/server/definition/datasets.yml": "db825959de951c73ad39c3800b368f3b882ce18b",
+        "fern/apis/server/definition/evaluation-commons.yml": "0ce80affbed3bb9710a700e19057e5c527aac282",
+        "fern/apis/server/definition/evaluation-errors.yml": "44913c66e4ca7af5df27161c800eadcb4b75ca35",
+        "fern/apis/server/definition/evaluation-rules.yml": "5462d78a1d65fc5131a0ca702cca6a1ae861901f",
+        "fern/apis/server/definition/evaluators.yml": "b5654292cba77365876502491ede08a758134c0e",
+        "fern/apis/server/definition/experiments.yml": "15c936630e9f954ce335a15fbd7c6869bad9b2e8",
+        "fern/apis/server/definition/feedback.yml": "2ec77719b64c31921e3a6a23633233d39197687b",
+        "fern/apis/server/definition/health.yml": "3a37e1f893445308f8d88b32546b3c7455577004",
+        "fern/apis/server/definition/llm-connections.yml": "247e6e99ee9fde8f782f09982a5c9b2bb1318796",
+        "fern/apis/server/definition/media.yml": "9bdeea15f573ae58dbe40713a6043b7ea6f5be9a",
+        "fern/apis/server/definition/metrics.yml": "efa78bfdc4cece26e2ed0677d33dc8be7b3c67fc",
+        "fern/apis/server/definition/models.yml": "22a91f76b14f71e72b00752f87196f936ff32c2c",
+        "fern/apis/server/definition/observations.yml": "9702abd369083e841f8bdf3cd02e80968bf311e5",
+        "fern/apis/server/definition/opentelemetry.yml": "3ff63598128b16a2b701c72788a636fbc305a598",
+        "fern/apis/server/definition/organization-models.yml": "b1a1ea4ac55bdcee1a3110345b9f5894524c166c",
+        "fern/apis/server/definition/organizations.yml": "c5b67c288728e6c362dd4a85aee1277196212008",
+        "fern/apis/server/definition/projects.yml": "657c302f3175b319e61bc81fda7cbbd857ee7794",
+        "fern/apis/server/definition/prompt-version.yml": "85899818df835ff2cbcbbcbe9fb0b118d36575a2",
+        "fern/apis/server/definition/prompts.yml": "086a6a1abda8f789a0b4877d9631eb77c9d54e61",
+        "fern/apis/server/definition/scim.yml": "14583eed8bbb0b84313c8a61225f579b03ca53d5",
+        "fern/apis/server/definition/score-configs.yml": "d1453d0809f2c60e3e0fe3d6bffbd9575bb649a1",
+        "fern/apis/server/definition/scores.yml": "6a6f9805e9ba9d286637c745af82fc2821973efb",
+        "fern/apis/server/definition/skills.yml": "f7d941d7d26083bd8d8257a39d19302d4175ba55",
+        "fern/apis/server/definition/trace.yml": "0604baedd2f835eec59bfea43baf3276319b1204",
+        "fern/apis/server/definition/unstable/billable-units.yml": "8e49837dc9406bb4e5c32fb49c4bdd59e9ec4972",
+        "fern/apis/server/definition/unstable/dashboard-widgets.yml": "14563d827902f80c690e4456b10c26c30d750b16",
+        "fern/apis/server/definition/unstable/dashboards.yml": "e244d6cff53b29231dbf1d946e1c20a456771c92",
+        "fern/apis/server/definition/unstable/errors.yml": "74af0edfa08f4bc44c4e44a945fa426d12d03a0b",
+        "fern/apis/server/definition/unstable/topics.yml": "4b0dc1370d85bc750f7d05aeef1358094dc11647",
+        "fern/apis/server/definition/utils/pagination.yml": "9e6dc1c629fa52166732e2cc62169675daba3c18"
+      },
+      "fingerprint": "72e2b83befa2d06b32f5e58af8a9bef9518f95e0e4e53fb22bd527a3d133a1f7"
+    }
+  },
+  "purpose": "Initial monitoring checkpoint, not a compatibility certification; use --all for initial audit."
+}

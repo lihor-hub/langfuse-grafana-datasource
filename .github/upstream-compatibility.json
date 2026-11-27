@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "repository": "lihor-hub/langfuse-grafana-datasource",
+  "sources": [
+    { "id": "grafana", "track": "grafana", "repository": "grafana/grafana", "tagPrefix": "v" },
+    {
+      "id": "create-plugin",
+      "track": "grafana",
+      "repository": "grafana/plugin-tools",
+      "tagPrefix": "@grafana/create-plugin@"
+    },
+    {
+      "id": "plugin-e2e",
+      "track": "grafana",
+      "repository": "grafana/plugin-tools",
+      "tagPrefix": "@grafana/plugin-e2e@"
+    },
+    {
+      "id": "sign-plugin",
+      "track": "grafana",
+      "repository": "grafana/plugin-tools",
+      "tagPrefix": "@grafana/sign-plugin@"
+    },
+    {
+      "id": "plugin-validator",
+      "track": "grafana",
+      "repository": "grafana/plugin-validator",
+      "tagPrefix": "plugin-validator/v"
+    },
+    { "id": "plugin-tools", "track": "grafana", "repository": "grafana/plugin-tools", "tagPrefix": null },
+    { "id": "plugin-actions", "track": "grafana", "repository": "grafana/plugin-actions", "tagPrefix": null },
+    { "id": "langfuse", "track": "langfuse", "repository": "langfuse/langfuse", "tagPrefix": "v" },
+    { "id": "langfuse-js", "track": "langfuse", "repository": "langfuse/langfuse-js", "tagPrefix": "v" }
+  ],
+  "contracts": {
+    "id": "langfuse-contracts",
+    "track": "langfuse",
+    "releaseSource": "langfuse",
+    "prefix": "fern/apis/server/definition/",
+    "required": [
+      "api.yml",
+      "commons.yml",
+      "metrics.yml",
+      "observations.yml",
+      "scores.yml",
+      "projects.yml",
+      "utils/pagination.yml"
+    ]
+  }
+}
