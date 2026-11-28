@@ -27,6 +27,24 @@ describe('bounded dimension discovery', () => {
     });
   });
 
+  it('retains the complete approved discovery surface, independently of the editor options', () => {
+    // Do not derive this expectation from the implementation: removing an option must fail coverage.
+    expect(DISCOVERY_DIMENSIONS).toEqual({
+      observations: [
+        'environment',
+        'name',
+        'type',
+        'providedModelName',
+        'tags',
+        'release',
+        'promptName',
+        'promptVersion',
+      ],
+      'scores-numeric': ['environment', 'name', 'dataType', 'source'],
+      'scores-categorical': ['environment', 'name', 'dataType', 'source'],
+    });
+  });
+
   it('supports every declared view/dimension and all five bounded lookbacks', async () => {
     const queryMetrics = jest.fn().mockResolvedValue({ data: [] });
     const run = createDiscoveryQueryRunner({ queryMetrics } as unknown as LangfuseObservabilityClient);
