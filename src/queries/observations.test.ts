@@ -1,7 +1,7 @@
 import { dateTime, type DataQueryRequest } from '@grafana/data';
 import type { LangfuseQuery } from '../types';
 import type { LangfuseObservabilityClient } from '../client/types';
-import { runObservationQuery } from './observations';
+import { OBSERVATION_FIELD_GROUPS, runObservationQuery } from './observations';
 
 const request = {
   app: 'dashboard',
@@ -213,6 +213,44 @@ it('does not dispatch for pre-cancelled requests or invalid ranges', async () =>
     )
   ).rejects.toThrow();
   expect(listObservations).not.toHaveBeenCalled();
+});
+it.each(OBSERVATION_FIELD_GROUPS)('requests only core and the selected %s field group', async (group) => {
+  listObservations.mockResolvedValue({ data: [], meta: {} });
+  const [frame] = await runObservationQuery(
+    client,
+    { refId: 'A', observationsQuery: JSON.stringify({ fieldGroups: [group] }) },
+    request,
+    new AbortController().signal
+  );
+  expect(listObservations.mock.calls[0][0].fields).toBe(`core,${group}`);
+  expect(frame.fields.slice(0, 8).map(({ name }) => name)).toEqual([
+    'startTime',
+    'name',
+    'type',
+    'level',
+    'id',
+    'traceId',
+    'projectId',
+    'parentObservationId',
+  ]);
+  for (const payload of ['input', 'output', 'metadata']) {
+    expect(frame.fields.some(({ name }) => name === payload)).toBe(
+      group === (payload === 'metadata' ? 'metadata' : 'io')
+    );
+  }
+});
+it('supports core-only results and a one-row ceiling without a false truncation warning', async () => {
+  listObservations.mockResolvedValue({ data: [row], meta: {} });
+  const [frame] = await runObservationQuery(
+    client,
+    { refId: 'A', observationsQuery: '{"fieldGroups":[],"ceiling":1}' },
+    request,
+    new AbortController().signal
+  );
+  expect(listObservations.mock.calls[0][0]).toMatchObject({ fields: 'core', limit: 1 });
+  expect(frame.length).toBe(1);
+  expect(frame.fields).toHaveLength(8);
+  expect(frame.meta?.notices).toBeUndefined();
 });
 it('overwrites legacy timestamps without widening selected bounds or requesting unselected payloads', async () => {
   listObservations.mockResolvedValue({ data: [], meta: {} });
