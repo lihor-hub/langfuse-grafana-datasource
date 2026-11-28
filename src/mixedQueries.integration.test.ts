@@ -1,6 +1,7 @@
 import {
   CoreApp,
   dateTime,
+  type DataFrame,
   type DataQueryRequest,
   type DataSourceInstanceSettings,
   type ScopedVars,
@@ -214,6 +215,66 @@ it('rejects scalar multi-value expansion without sending that target or dropping
   expect(api.listScores).toHaveBeenCalledTimes(1);
   expect(JSON.stringify(result)).toContain('M: Invalid Langfuse query');
 });
+
+it.each([CoreApp.Dashboard, CoreApp.Explore])(
+  'passes configured UI links and context defaults through populated observation dispatch in %s without persisting bounds',
+  async (app) => {
+    const api = client();
+    jest.mocked(api.listObservations).mockResolvedValue({
+      data: [
+        {
+          endTime: null,
+          parentObservationId: null,
+          modelId: null,
+          inputPrice: null,
+          outputPrice: null,
+          totalPrice: null,
+          id: 'observation/1',
+          projectId: 'project/1',
+          traceId: 'trace/1',
+          type: 'AGENT',
+          name: 'synthetic agent',
+          startTime: '2026-11-01T01:00:00Z',
+        },
+      ],
+      meta: {},
+    });
+    const datasource = new DataSource(
+      { ...settings, jsonData: { langfuseUiUrl: 'https://ui.example.test/langfuse/' } },
+      () => api
+    );
+    const target: LangfuseQuery = {
+      refId: 'O',
+      kind: 'observations',
+      observationsQuery: '{"logBody":"output","fieldGroups":["basic"]}',
+    };
+    const saved = JSON.stringify(target);
+    const query = request([target], app);
+    const first = await lastValueFrom(datasource.query(query));
+    const frame: DataFrame = first.data[0];
+    expect(frame.meta?.preferredVisualisationType).toBe(app === CoreApp.Explore ? 'logs' : 'table');
+    expect(frame.fields.find(({ name }) => name === 'traceUrl')?.values).toEqual([
+      'https://ui.example.test/langfuse/project/project%2F1/traces/trace%2F1',
+    ]);
+    expect(frame.fields.find(({ name }) => name === 'observationUrl')?.values).toEqual([
+      'https://ui.example.test/langfuse/project/project%2F1/traces/trace%2F1?observation=observation%2F1',
+    ]);
+    expect(frame.fields.find(({ name }) => name === 'id')?.config.links?.[0].title).toBe(
+      'View observation in Langfuse'
+    );
+    if (app === CoreApp.Explore) {
+      expect(frame.fields.find(({ name }) => name === 'body')?.values).toEqual(['synthetic agent']);
+      expect(frame.fields.find(({ name }) => name === 'labels')?.values).toEqual([{ type: 'AGENT' }]);
+    }
+    const refreshed = { ...query, range: { ...query.range, to: dateTime('2026-11-03T00:00:00Z') } };
+    await lastValueFrom(datasource.query(refreshed));
+    expect(jest.mocked(api.listObservations).mock.calls[1][0]).toMatchObject({
+      toStartTime: refreshed.range.to.toISOString(),
+      fields: 'core,basic',
+    });
+    expect(JSON.stringify(target)).toBe(saved);
+  }
+);
 
 it('keeps discovery caching instance-local and forwards cancellation without a request', async () => {
   const api = client();

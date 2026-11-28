@@ -70,6 +70,47 @@ for (const empty of [false, true]) {
   });
 }
 
+for (const logBody of ['statusMessage', 'output']) {
+  test(`Explore falls back to observation name for unavailable ${logBody}`, async ({
+    page,
+    explorePage,
+    readProvisionedDataSource,
+  }) => {
+    const datasource = await readProvisionedDataSource({ fileName: 'datasources.yml' });
+    const sent: URL[] = [];
+    page.on('request', (request) => {
+      if (request.url().includes('/api/public/v2/observations')) {
+        sent.push(new URL(request.url()));
+      }
+    });
+    const panes = {
+      observation: {
+        datasource: datasource.uid,
+        queries: [
+          {
+            refId: 'A',
+            datasource: { uid: datasource.uid, type: 'lihorhub-langfuse-datasource' },
+            kind: 'observations',
+            // SPAN has a null status message. Output is deliberately not fetched.
+            observationsQuery: JSON.stringify({ type: 'SPAN', fieldGroups: ['basic'], logBody, ceiling: 1 }),
+          },
+        ],
+        range: { from: '1785927600000', to: '1785931200000' },
+      },
+    };
+    await page.goto(`/explore?schemaVersion=1&panes=${encodeURIComponent(JSON.stringify(panes))}&orgId=1`);
+    const editor = explorePage.getQueryEditorRow('A');
+    await expect(editor.getByRole('button', { name: 'Logs', exact: true })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByText('demo-span', { exact: true }).first()).toBeVisible();
+    await expect(page.getByText('Synthetic output', { exact: false })).not.toBeVisible();
+    expect(sent.length).toBeGreaterThan(0);
+    for (const url of sent) {
+      expect(url.searchParams.get('fields')).toBe('core,basic');
+      expect(url.searchParams.get('limit')).toBe('1');
+    }
+  });
+}
+
 test('Explore defaults observations to logs and supports body and table switching', async ({
   page,
   explorePage,

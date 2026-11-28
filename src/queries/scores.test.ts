@@ -128,6 +128,30 @@ test('default ceiling is 500 and never requests another page at the ceiling', as
   expect(frames[0].length).toBe(500);
 });
 
+test('the 5000-row ceiling uses exactly 50 sequential pages with unchanged filters, range and signal', async () => {
+  let active = 0;
+  const signal = new AbortController().signal;
+  const definition = { dataType: 'NUMERIC', fields: 'details,subject,annotation', name: 'quality', ceiling: 5000 };
+  const base = buildScoreRequest(target(definition), range);
+  const list = jest.fn().mockImplementation(async (sent, receivedSignal) => {
+    const page = list.mock.calls.length;
+    expect(active++).toBe(0);
+    expect(receivedSignal).toBe(signal);
+    expect(sent).toEqual({ ...base, ...(page > 1 ? { cursor: `opaque /+? page ${page - 1}` } : {}) });
+    await Promise.resolve();
+    active--;
+    return {
+      data: Array.from({ length: 100 }, (_, index) => ({ ...score(), id: `${page}-${index}` })),
+      meta: { limit: 100, cursor: `opaque /+? page ${page}` },
+    };
+  });
+  const [frame] = await runScoreQuery(clientWith(list), target(definition), request, signal);
+  expect(list).toHaveBeenCalledTimes(50);
+  expect(frame.length).toBe(5000);
+  expect(new Set(frame.fields.find(({ name }) => name === 'id')!.values).size).toBe(5000);
+  expect(frame.meta?.notices?.[0].text).toMatch(/5000.*truncated/);
+});
+
 test('repeated cursors are rejected rather than looping', async () => {
   const list = jest.fn().mockResolvedValue({ data: [score()], meta: { limit: 100, cursor: 'same' } });
   await expect(runScoreQuery(clientWith(list), target(), request, new AbortController().signal)).rejects.toThrow(
