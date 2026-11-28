@@ -16,9 +16,9 @@ not duplicate functionality or a new compatibility claim.
   This change does not select a request budget or alter the guard.
 - **#10: implemented behavior, incomplete acceptance evidence**. Unit,
   component and integration coverage verifies the logs contract, fallbacks,
-  labels and UI links. Existing Explore E2E covers output-body display and
-  format switching, but does not assert fallback bodies, labels or usable
-  Langfuse data links in the browser. Do not treat that narrower browser test
+  labels and UI links. Explore E2E covers output-body display, name fallback
+  for null status messages and unrequested output, and format switching, but
+  does not assert labels or usable Langfuse data links in the browser. Do not treat that narrower browser test
   as full coverage of the final criterion. Its declared #9 dependency also
   remains open. This PR intentionally does not close #10.
 
@@ -53,15 +53,15 @@ customer data, merges, releases, tags or protection changes are involved.
 
 ## #10: observation logs and links (not closed here)
 
-| Acceptance criterion                                                | Evidence / remaining limit                                                                                                                                                                                                 |
-| ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Explore logs / dashboard table defaults                             | Context component tests and new populated mixed-query dispatch regression in both contexts.                                                                                                                                |
-| Timestamp, body, severity, ID, labels, metadata                     | Explicit typed transformer tests assert `timestamp/body/severity/id/labels`, normalized severity and `log-lines` / preferred logs metadata.                                                                                |
-| Four body choices and fallback                                      | Transformer tests cover absent status, selected output, unselected input, structured input and unnamed fallback; new integration regression covers output selection without io falling back to name.                       |
-| Selected low-cardinality labels; no IDs                             | Transformer tests pin the complete allowlist (type, environment, model, trace name, release, prompt); user/session/trace IDs remain excluded.                                                                              |
-| Configured UI URL, never proxy                                      | Encoded project-scoped trace/observation links and invalid/proxy roots tested in transformer suite; new mixed-query regression verifies DataSource passes the configured UI root all the way to populated output.          |
-| Format switch preserves canonical definition                        | Context component tests preserve filters; existing Explore browser scenario inspects advanced JSON after switching to table.                                                                                               |
-| Component, transformer and Explore E2E fallback/label/link coverage | Component/transformer/integration evidence exists. **Remaining gap:** browser assertions for fallback, selected labels and usable data links, beyond existing output-body and format-switching E2E. #9 is also still open. |
+| Acceptance criterion                                                | Evidence / remaining limit                                                                                                                                                                                                                                         |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Explore logs / dashboard table defaults                             | Context component tests and new populated mixed-query dispatch regression in both contexts.                                                                                                                                                                        |
+| Timestamp, body, severity, ID, labels, metadata                     | Explicit typed transformer tests assert `timestamp/body/severity/id/labels`, normalized severity and `log-lines` / preferred logs metadata.                                                                                                                        |
+| Four body choices and fallback                                      | Transformer tests cover absent status, selected output, unselected input, structured input and unnamed fallback; new integration regression covers output selection without io falling back to name.                                                               |
+| Selected low-cardinality labels; no IDs                             | Transformer tests pin the complete allowlist (type, environment, model, trace name, release, prompt); user/session/trace IDs remain excluded.                                                                                                                      |
+| Configured UI URL, never proxy                                      | Encoded project-scoped trace/observation links and invalid/proxy roots tested in transformer suite; new mixed-query regression verifies DataSource passes the configured UI root all the way to populated output.                                                  |
+| Format switch preserves canonical definition                        | Context component tests preserve filters; existing Explore browser scenario inspects advanced JSON after switching to table.                                                                                                                                       |
+| Component, transformer and Explore E2E fallback/label/link coverage | Component/transformer/integration evidence exists. **Remaining gap:** browser assertions for selected labels and usable data links. E2E now also asserts name fallback for null status messages and unrequested output without enabling io. #9 is also still open. |
 
 ## #11: typed individual score tables
 
