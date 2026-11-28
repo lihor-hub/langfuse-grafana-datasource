@@ -131,8 +131,13 @@ Docker is not installed on this host, so local Grafana browser execution is
 unavailable. Existing browser evidence on the exact audited base is successful
 [CI run 46053854084](https://github.com/lihor-hub/langfuse-grafana-datasource/actions/runs/46053854084):
 Grafana 12.3.11, 12.4.16, 13.0.14, 13.2.7, 13.3.2, and nightly all passed.
-That run predates this PR and does **not** verify the new Explore test. The PR's
-own matrix must pass before treating that new browser criterion as verified.
+That baseline run predates this PR. Fresh
+[PR CI run 46167931868](https://github.com/lihor-hub/langfuse-grafana-datasource/actions/runs/46167931868)
+then passed build/lint/unit/validator gates and all six Grafana E2E jobs on code
+commit `7b69d07921b187ce00f3d7b343761e68870eab0e`, including the new Explore test.
+Repository readiness, bundle comparison, and compatibility checks also passed.
+This paragraph is a subsequent documentation-only evidence update; it does not
+claim that the earlier run tested a later commit.
 
 This audit does not certify a real server version, future upstream capability
 changes, signing, publication, or Grafana-managed alerting. No backend, mutation,
